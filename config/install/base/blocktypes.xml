@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<concrete5-cif version="1.0">
+
+    <blocktypes>
+        <blocktype handle="easy_image_gallery" package="easy_image_gallery"/>
+    </blocktypes>
+
+</concrete5-cif>

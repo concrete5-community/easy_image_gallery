@@ -1,0 +1,54 @@
+.easy-gallery-boxes .box-wrap {
+    margin-bottom: 30px;
+    background-color: #fff;
+    box-shadow: 1px 1px 1px 1px #ccc;
+    position: relative;
+}
+.easy-gallery-boxes.clickable {
+    /*cursor: pointer;  */
+}
+.easy-gallery-boxes .img {
+    display: block;
+    overflow: hidden;
+    position: relative;
+    background-size:cover;
+    background-position: center;
+    height: 300px;
+    margin:10px;
+    transition:.3s;
+    /*border:1px solid #ccc;*/
+}
+.easy-gallery-boxes-basic .box-wrap:hover .img {
+    opacity: .7;
+    transform: scale(1.01);
+}
+
+/* -- Loader -- */
+
+.easy-gallery-boxes .loader {
+    position: absolute;
+    right: 50%;
+    top: 100px;
+    opacity: 0;
+    transition:all .8s ease;
+}
+.easy-gallery-boxes .img.loading {
+    background-size: 200%;
+    opacity: .5;
+}
+.easy-gallery-boxes .img.loading + .loader {
+    opacity: 1
+}
+
+/* -- Title & Description -- */
+
+.easy-gallery-boxes .info {
+    margin: 10px;
+}
+.easy-gallery-boxes .info p {
+    font-size: 11px;
+    line-height: 1.3;
+}
+
+
+
