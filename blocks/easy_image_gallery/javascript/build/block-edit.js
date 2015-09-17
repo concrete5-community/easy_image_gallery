@@ -180,7 +180,7 @@
 
             var defaults = { fID: '', title: '', link_url: '',internal_link_cid:0,link_type:'', cID: '', description: '', sort_order: '', image_url: ''};
             if (file) $.extend(defaults, {fID: file.fID, title: file.title, description: file.description, sort_order: '', image_url: file.urlInline,internal_link_cid:file.internal_link_cid, link_type:file.link_type});
-            
+
             if ($element) {
                 //  on est dans le cas ou l'utilisateur a uploadé ou choisi un fichier
                 // dans ce cas on replace le carré vide par un element rempli avec image et tout le toutim
@@ -244,6 +244,11 @@
                 }
             }
             filesetAlreadyChoosed.push(v);
+            // on rempli le container d'hidden qui rerésentent les fsID
+            $.each(filesetAlreadyPicked, function(index, value) {
+              $('<input type="hidden" name="fsIDs[]" />').val(this).appendTo('#fsIDs');
+            });
+            $("#fsIDs").empty();
             $.get(getFilesetImagesURL,{fsID:v}, function(data) {
                 if(data.length) {
                     $.each(data,function(i,f){

@@ -7,6 +7,7 @@ $tp = new TaskPermission();
     <li class="ccm-sub-toolbar-text-cell">
         <?php if(count($fileSets)) : ?>
         <label for="fsID"><?php echo t("Add a Filset:")?></label>
+        <div id="fsIDs"></div>
         <select name="fsID" id="fsID" style="width: auto !important">
             <option value="0"><?php echo t('Choose') ?></option>
             <?php foreach ($fileSets as $key => $fs) :?>
