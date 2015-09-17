@@ -1,5 +1,4 @@
    debug = true;
-
    function easy_image_manager (sliderEntriesContainer) {
 
         // sliderEntriesContainer = $('.image-items');
@@ -42,11 +41,11 @@
                     initUploadActionOnItem(newItem);
                 }
                 is_first_file = false;
-          
+
             },
             progress: function(e, data) {
                 var progress = parseInt(data.loaded / data.total * 100, 10);
-                
+
                 var target = data.newItem ? data.newItem : $(e.target);
                 if (progress < 95) {
                     target.find('.knob').val(progress).change();
@@ -62,7 +61,7 @@
                 var target = data.newItem ? data.newItem : $(e.target);
                 $.get(getFileDetailDetailJson,{fID:data.result[0].fID}, function(file) {
                     fillTemplate(file,target);
-                },'json');                 
+                },'json');
             },
             fail: function(r,data) {
                 //jQuery.fn.dialog.closeTop();
@@ -84,7 +83,7 @@
         // Quand on clique sur le cadre on déclenche l'ouverture du navigateur de fichier Navigateur
         var attachUploadEvent = function ($obj) {
             // On lance le fileupload
-            $obj.fileupload(args);    
+            $obj.fileupload(args);
             $inputfile = $obj.find('input.browse-file');
             $obj.find('.upload-file').on('click',function(e){
                 e.preventDefault();
@@ -116,7 +115,7 @@
                 ConcreteFileManager.launchDialog(function (data) {
                     // data : Object {fID: "1"}
                     $.get(getFileDetailDetailJson,{fID:data.fID}, function(file) {
-                        if(file.generic_type == '1'){ // if(file.type == "Image"){
+                        if(file.generic_type == "1"){ // if(file.type == "Image"){
                             jQuery.fn.dialog.hideLoader();
                             fillTemplate(file,Launcher);
                            // On ajoute un nouvel element vide a coté
@@ -126,13 +125,14 @@
                         jQuery.fn.dialog.hideLoader();
                         alert('You must select an image file only')
 
-                    },'json');                    
+                    },'json');
                 });
             });
         }
 
         var initImageEdit = function ($obj,file) {
             $obj.find(".dialog-launch").dialog();
+
             $obj.find('.editable-click').editable({
                 ajaxOptions: {dataType: 'json'},
                 emptytext: ccmi18n.none,
@@ -140,6 +140,29 @@
                 url: saveFieldURL,
                 params:{fID:file.fID},
                 pk: '_x',
+                success:function(data) {
+                  // On doit tester la valeur du type et afficher le just input correspndant au type
+                  var container = $(this).closest('.image-item');
+                  l(container);
+                  if(data.name == 'link_type'){
+                    switch(data.value) {
+                        case 'URL':
+                            container.find('div[data-field=entry-link-page-selector]').hide();
+                            container.find('div[data-field=entry-link-url]').show();
+                            break;
+                        case 'Page':
+                            container.find('div[data-field=entry-link-url]').hide();
+                            container.find('div[data-field=entry-link-page-selector]').show();
+                            break;
+                        default:
+                            container.find('div[data-field=entry-link-page-selector]').hide();
+                            container.find('div[data-field=entry-link-url]').hide();
+                            break;
+                    }
+
+                  };
+                  // if(typeof data == 'object' && !data.success) return data.msg;
+                }
 
             });
             // Faire en sorte que les infos restent visibles quand on edite le titre ou la description
@@ -149,14 +172,15 @@
             $obj.find('.editable-click').on('hidden', function (data) {
                     $(data.target).closest('.item-toolbar').removeClass('active');
             });
+            // $obj.find('[data-page-selector]').concretePageSelector({'inputName': 'display_', 'cID': 275});
 
         }
 
         fillTemplate = function (file,$element) {
 
-            var defaults = { fID: '', title: '', link_url: '', cID: '', description: '', sort_order: '', image_url: ''};
-            if (file) $.extend(defaults, {fID: file.fID, title: file.title, description: file.description, sort_order: '', image_url: file.urlInline});
-
+            var defaults = { fID: '', title: '', link_url: '',internal_link_cid:0,link_type:'', cID: '', description: '', sort_order: '', image_url: ''};
+            if (file) $.extend(defaults, {fID: file.fID, title: file.title, description: file.description, sort_order: '', image_url: file.urlInline,internal_link_cid:file.internal_link_cid, link_type:file.link_type});
+            
             if ($element) {
                 //  on est dans le cas ou l'utilisateur a uploadé ou choisi un fichier
                 // dans ce cas on replace le carré vide par un element rempli avec image et tout le toutim
@@ -182,7 +206,11 @@
                 // Mettre à jour le fID
                 newSlide.find('.image-fID').val(file.fID);
             }
-            
+
+            newSlide.find('[data-field=entry-link-page-selector]').concretePageSelector({
+                'inputName': 'internal_link_cid[' + defaults.fID + '][]', 'cID':defaults.internal_link_cid
+            })
+
             refreshManager ();
 
             return newSlide;
@@ -195,7 +223,7 @@
             sliderEntriesContainer.sortable({handle: ".handle"});
             // On regarde si on desactive ou pas le bouton submit
             // en comptant les carré rempli d'image
-            var b = $('#easy_image_save'); 
+            var b = $('#easy_image_save');
             if(!$('.image-item.filled').size()) {
                 b.addClass('disabled');
             } else if (b.is('.disabled')) {
@@ -220,25 +248,25 @@
                 if(data.length) {
                     $.each(data,function(i,f){
                         fillTemplate(f);
-                        refreshManager ();        
+                        refreshManager ();
 
                     });
                     t.val(0);
                 }
             },'json');
-            
+
         });
         // Simpel option open
-        $('#options-button').on('click',function(e){          
+        $('#options-button').on('click',function(e){
             $('#advanced-options-content').slideUp();
             $('#options-content').slideToggle();
         });
         // Advanced options open
-        $('#advanced-options-button').on('click',function(e){      
+        $('#advanced-options-button').on('click',function(e){
             $('#options-content').slideUp();
             $('#advanced-options-content').slideToggle();
-            
-        });        
+
+        });
         // Closes buttons
         $('.easy_image_options_close').on('click',function(e){
             $('.options-content').slideUp();
@@ -253,16 +281,16 @@ function l() {
         for (var i=0; i < arguments.length; i++) {
             console.log(arguments[i]);
         }
-    } 
+    }
 }
-        
+
 var submitBlockForm = function () {
     $('#ccm-block-form').submit();
     ConcreteEvent.fire('EditModeExitInlineSaved');
     ConcreteEvent.fire('EditModeExitInline', {
         action: 'save_inline'
-    });    
-} 
+    });
+}
 
 function cancelBlockForm () {
     ConcreteEvent.fire('EditModeExitInline');

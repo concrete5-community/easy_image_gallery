@@ -32,7 +32,7 @@ class Controller extends BlockController
     protected $btCacheBlockOutputForRegisteredUsers = false;
     protected $btSupportsInlineEdit = true;
     protected $btSupportsInlineAdd = true;
-    protected $btDefaultSet = 'multimedia';    
+    protected $btDefaultSet = 'multimedia';
 
     public function getBlockTypeDescription()
     {
@@ -49,7 +49,7 @@ class Controller extends BlockController
         $this->setAssetEdit();
 
         $this->set('fileSets', $this->getFileSetList());
-        $this->set('options', $this->getOptionsJson());        
+        $this->set('options', $this->getOptionsJson());
     }
 
     public function edit()
@@ -65,8 +65,8 @@ class Controller extends BlockController
     }
 
     function getFilesIds () { return explode(',', $this->fIDs); }
-    
-    function getOptionsJson ()  { 
+
+    function getOptionsJson ()  {
         // Cette fonction retourne un objet option
         // SI le block n'existe pas encore, ces options sont préréglées
         // Si il existe on transfome la chaine de charactère en json
@@ -92,17 +92,17 @@ class Controller extends BlockController
             if(!$options->hoverTitleColor) $options->hoverTitleColor = '#333333';
             if(!$options->dateFormat) $options->dateFormat = 'm - Y';
             // end legacy
-            return $options ; 
+            return $options ;
         endif;
 
     }
     // For Edit / ADD
     function getFilesDetails ($fIDs) {
-        $tools = new EasyImageGalleryTools();        
+        $tools = new EasyImageGalleryTools();
         $fDetails = array();
         foreach ($fIDs as $key => $fID) {
             $f = File::getByID($fID);
-            if (is_object($f)) $fDetails[] = $tools->getFileDetails($f);            
+            if (is_object($f)) $fDetails[] = $tools->getFileDetails($f);
         }
         return $fDetails;
     }
@@ -116,17 +116,17 @@ class Controller extends BlockController
 
     public function registerViewAssets()
     {
-        $this->requireAsset('css','easy-gallery-view');        
+        $this->requireAsset('css','easy-gallery-view');
         $this->requireAsset('javascript', 'jquery');
         $this->requireAsset('javascript', 'imagesloaded');
         $this->requireAsset('javascript', 'masonry');
         $this->requireAsset('javascript', 'isotope');
         $this->requireAsset('javascript', 'lazyload');
-        
+
     }
 
     public function view() {
-        $time_start = microtime(true);         
+        $time_start = microtime(true);
         $options =  $this->getOptionsJson();
 
         // Files
@@ -160,10 +160,10 @@ class Controller extends BlockController
                 if (!$avID) continue;
 
                 $query = $db->GetAll("
-                    SELECT opt.value  
-                    FROM atSelectOptions opt, 
+                    SELECT opt.value
+                    FROM atSelectOptions opt,
                     atSelectOptionsSelected sel
-                         
+
                     WHERE sel.avID = ?
                     AND sel.atSelectOptionID = opt.ID",$avID);
 
@@ -195,7 +195,7 @@ class Controller extends BlockController
     public function isValueEmpty() {
         if ($this->fIDs)
             return false;
-        else 
+        else
             return true;
     }
 
@@ -210,6 +210,8 @@ class Controller extends BlockController
         $this->requireAsset('javascript', 'bootstrap/popover');
         $this->requireAsset('javascript', 'jquery/ui');
         $this->requireAsset('javascript', 'core/events');
+        $this->requireAsset('core/file-manager');
+        $this->requireAsset('core/sitemap');
         $this->requireAsset('javascript', 'underscore');
         $this->requireAsset('javascript', 'core/app');
         $this->requireAsset('javascript', 'bootstrap-editable');
@@ -224,9 +226,29 @@ class Controller extends BlockController
     {
         $options = $args;
         unset($options['fID']);
+        unset($options['internal_link_cid']);
+
+        // Vu que je n'arrive pas encore a sauver en ajax l'attribut cID du lien
+        // (meme si dans le filemanager la fenetre attribut y arrive)
+        // je boucle et sauve pour chaque fichier
+        // var_dump($args['internal_link_cid']); die();
+        if(is_array($args['internal_link_cid'])) :
+          $ak = FileAttributeKey::getByHandle('internal_link_cid');
+          if (is_object($ak)) :
+            foreach ($args['internal_link_cid'] as $fID => $valueArray) :
+              
+              $f = File::getByID($fID);
+              if(is_object($f)) :
+                $fv = $f->getVersionToModify();
+                $ak->setAttribute($fv,$valueArray[0]);
+              endif;
+            endforeach;
+          endif;
+        endif;
+
         if (!is_numeric($options['fancyOverlayAlpha']) || $options['fancyOverlayAlpha'] > 1 || $options['fancyOverlayAlpha'] < 0) $options['fancyOverlayAlpha'] = .9;
         $args['options'] = json_encode($options);
-        if(is_array($args['fID'])) : 
+        if(is_array($args['fID'])) :
             $args['fIDs'] = implode(',', $args['fID']);
             $this->generatePlaceHolderFromArray ($args['fID']);
         endif;
@@ -248,7 +270,7 @@ class Controller extends BlockController
        $rgb = array($r, $g, $b);
        return implode(",", $rgb); // returns the rgb values separated by commas
        // return $rgb; // returns an array with the rgb values
-    } 
+    }
 
     function generatePlaceHolderFromArray ($array) {
 
@@ -258,7 +280,7 @@ class Controller extends BlockController
             $files = array_map(array($this,'getFileFromFileID') ,$array);
         else :
             $files = $array;
-        endif; 
+        endif;
 
         foreach ($files as $key => $f) :
             if(!is_object($f)) continue;
@@ -269,17 +291,17 @@ class Controller extends BlockController
 
             $placeholderFile =  __DIR__ . "/images/placeholders/placeholder-$w-$h.png";
             if (file_exists($placeholderFile)) continue;
-            $img = imagecreatetruecolor($new_width,$new_height); 
-            imagesavealpha($img, true); 
+            $img = imagecreatetruecolor($new_width,$new_height);
+            imagesavealpha($img, true);
 
-            // Fill the image with transparent color 
-            $color = imagecolorallocatealpha($img,0x00,0x00,0x00,110); 
-            imagefill($img, 0, 0, $color); 
+            // Fill the image with transparent color
+            $color = imagecolorallocatealpha($img,0x00,0x00,0x00,110);
+            imagefill($img, 0, 0, $color);
 
-            // Save the image to file.png 
-            imagepng($img,$placeholderFile); 
+            // Save the image to file.png
+            imagepng($img,$placeholderFile);
 
-            // Destroy image 
+            // Destroy image
             imagedestroy($img);
         endforeach;
     }

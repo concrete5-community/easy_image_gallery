@@ -47,6 +47,16 @@ $tp = new TaskPermission();
             <div class="item-toolbar">
                 <h4 data-type="textarea" data-name="fvTitle"  class="editable editable-click" title="<?php echo t('Title') ?>"><%= title %></h4>
                 <p class="description editable editable-click" data-placeholder="<?php echo t('Write your description') ?>" data-name="fvDescription" data-type="textarea" <% if (!description) { %> editable-empty <% } %>><%= description %></p>
+
+                <hr class="separator">
+
+                <p><strong><?php echo t('Link type') ?> : </strong><span class="link_type editable editable-click" data-placeholder="<?php echo t('Link type') ?>" data-value="<%= link_type %>" data-name="link_type" data-type="select" data-source='{"None": "None", "URL":"External URL", "Page": "Link to page"}' <% if (!link_type) { %> editable-empty <% } %>><%= link_type %></span></p>
+                <p style="<% if (link_type != 'URL') { %> display: none;<% } %>"><strong><?php echo t('External URL') ?> : </strong><span data-field="entry-link-url"  data-type="textarea" data-name="external_link_url"  class="editable editable-click" data-placeholder="<?php echo t('http://') ?>" title="<?php echo t('External URL') ?>"></span></p>
+                <div style="<% if (link_type != 'Page') { %> display: none;<% } %>" data-field="entry-link-page-selector" class="form-group">
+                   <label><?php echo t('Choose Page:') ?></label>
+                    <div data-field="entry-link-page-selector-select"></div>
+                </div>
+
                 <a href="javascript:;" class="remove-item"><i class="fa fa-remove"></i></a>
                 <div class="item-controls">
                     <a class="dialog-launch item-properties" dialog-modal="true" dialog-width="600" dialog-height="400" dialog-title="Properties" href="<?php echo URL::to('/ccm/system/dialogs/file/properties') ?>?fID=<%= fID %>"><i class="fa fa-gear"></i></a>

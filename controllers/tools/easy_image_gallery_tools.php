@@ -1,4 +1,4 @@
-<?php 
+<?php
 namespace Concrete\Package\EasyImageGallery\Controller\Tools;
 
 use URL;
@@ -7,7 +7,7 @@ use FileSet;
 use Permissions;
 use \Concrete\Core\File\EditResponse as FileEditResponse;
 use \Concrete\Core\Controller\Controller as RouteController;
-
+use FileAttributeKey;
 use Loader;
 use Core;
 use stdClass;
@@ -31,12 +31,21 @@ class EasyImageGalleryTools extends RouteController
                 case 'fvTags':
                     $fv->updateTags($value);
                     break;
+                default:
+                    $ak = FileAttributeKey::getByHandle('link_type');
+                    if (is_object($ak)) :
+                      $ak->setAttribute($fv,$value);
+                    endif;
+
+                    // $fv->saveAttribute('internal_link_cid',$value);
+                  break;
             }
 
             $sr = new FileEditResponse();
             $sr->setFile($this->file);
             $sr->setMessage(t('File updated successfully.'));
             $sr->setAdditionalDataAttribute('value', $value);
+            $sr->setAdditionalDataAttribute('name', $_REQUEST['name']);
             $sr->outputJSON();
 
 
@@ -55,16 +64,16 @@ class EasyImageGalleryTools extends RouteController
         // print_r($fsf);
         if (count($fsf)) :
             foreach ($fsf as $key => $f) :
-                $fd = $this->getFileDetails($f); 
+                $fd = $this->getFileDetails($f);
                 if ($fd) $files[] = $fd;
             endforeach;
             Loader::helper('ajax')->sendResult($files);
         endif;
-        
+
     }
 
     public function getFileThumbnailUrl ($f = NULL) {
-        if(!$f && $_REQUEST['fID']) 
+        if(!$f && $_REQUEST['fID'])
             $f = File::getByID($_REQUEST['fID']);
 
         $type = \Concrete\Core\File\Image\Thumbnail\Type\Type::getByHandle('file_manager_detail');
@@ -75,16 +84,29 @@ class EasyImageGalleryTools extends RouteController
     }
 
     public function getFileDetails ($f = NULL) {
-        if(!$f && $_REQUEST['fID']) 
+        if(!$f && $_REQUEST['fID'])
             $f = File::getByID($_REQUEST['fID']);
 
-        $o = new stdClass;
+        // $o = new stdClass;
         if(!is_object($f)) return false;
+        $fv = $f->getVersionToModify();
+        $to = $fv->getTypeObject();
+        $o  = $fv->getJSONObject();
+        // We add the Generic type as number to avoid translating issues
+        $o->generic_type = $to->getGenericType();
+        // Value fro the image link
+        $o->internal_link_cid = $f->getAttribute('internal_link_cid');
+        $o->external_link_url = $f->getAttribute('external_link_url');
+        $o->link_type = str_replace('<br/>', '', $f->getAttribute('link_type','display'));
+
+        return $o;
+
         $o->urlInline = $this->getFileThumbnailUrl($f);
         $o->title = $f->getTitle();
         $o->description = $f->getDescription();
         $o->fID = $f->getFileID();
         $o->type = $f->getVersionToModify()->getGenericTypeText();
+        $o->generic_type = $f->getVersionToModify()->getGenericType();
 
         return $o;
     }
