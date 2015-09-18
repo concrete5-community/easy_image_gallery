@@ -239,16 +239,17 @@
             var v = t.val();
             if ($.inArray(v, filesetAlreadyChoosed) > -1) {
                 var addImages = confirm(ccmi18n.filesetAlreadyPicked );
-                if(addImages == false) {
-                    return;
-                }
+                if(addImages == false) return;              
+            } else {
+                filesetAlreadyChoosed.push(v);
             }
-            filesetAlreadyChoosed.push(v);
+
             // on rempli le container d'hidden qui rerésentent les fsID
-            $.each(filesetAlreadyPicked, function(index, value) {
+            $("#fsIDs").empty();
+            $.each(filesetAlreadyChoosed, function(index, value) {
               $('<input type="hidden" name="fsIDs[]" />').val(this).appendTo('#fsIDs');
             });
-            $("#fsIDs").empty();
+
             $.get(getFilesetImagesURL,{fsID:v}, function(data) {
                 if(data.length) {
                     $.each(data,function(i,f){

@@ -7,7 +7,6 @@ $tp = new TaskPermission();
     <li class="ccm-sub-toolbar-text-cell">
         <?php if(count($fileSets)) : ?>
         <label for="fsID"><?php echo t("Add a Filset:")?></label>
-        <div id="fsIDs"></div>
         <select name="fsID" id="fsID" style="width: auto !important">
             <option value="0"><?php echo t('Choose') ?></option>
             <?php foreach ($fileSets as $key => $fs) :?>
@@ -37,6 +36,7 @@ $tp = new TaskPermission();
 <?php $this->inc('advanced_options.php', array('view' => $view, 'options' => $controller->getOptionsJson(), 'form' => $form)); ?>
 
 <div class="basic-image-form-wrapper ccm-ui">
+  <div id="fsIDs"></div>
     <div class="easy_image-items"></div>
 </div>
 

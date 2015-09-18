@@ -47,7 +47,6 @@ class Controller extends BlockController
 
     public function add() {
         $this->setAssetEdit();
-
         $this->set('fileSets', $this->getFileSetList());
         $this->set('options', $this->getOptionsJson());
     }
@@ -64,7 +63,18 @@ class Controller extends BlockController
         $this->set('fDetails',$this->getFilesDetails($fIDs));
     }
 
-    function getFilesIds () { return explode(',', $this->fIDs); }
+    function getFilesIds () {
+      // En premier on va tester si des fichiers ont été ajoutés dans des filesets.
+      if ($selectedFilesets = $this->getSelectedFilesets()) :
+        
+      endif;
+      return explode(',', $this->fIDs);
+    }
+
+    function getSelectedFilesets() {
+      $a = explode(',',$this->fsIDs);
+      return count($a) ? $a : false;
+    }
 
     function getOptionsJson ()  {
         // Cette fonction retourne un objet option
@@ -182,6 +192,9 @@ class Controller extends BlockController
 
     }
 
+    public function checkFileset()  {
+      $fIDs =  $this->getFilesIds();
+    }
 
     public function getFileSetList () {
         $fs = new FileSetList();
@@ -231,12 +244,12 @@ class Controller extends BlockController
         // Vu que je n'arrive pas encore a sauver en ajax l'attribut cID du lien
         // (meme si dans le filemanager la fenetre attribut y arrive)
         // je boucle et sauve pour chaque fichier
-        // var_dump($args['internal_link_cid']); die();
+        // var_dump($args['fsIDs']);die();
         if(is_array($args['internal_link_cid'])) :
           $ak = FileAttributeKey::getByHandle('internal_link_cid');
           if (is_object($ak)) :
             foreach ($args['internal_link_cid'] as $fID => $valueArray) :
-              
+
               $f = File::getByID($fID);
               if(is_object($f)) :
                 $fv = $f->getVersionToModify();
@@ -245,7 +258,7 @@ class Controller extends BlockController
             endforeach;
           endif;
         endif;
-
+        $options['fsIDs'] = is_array($args['fsIDs']) ? implode(',',$args['fsIDs']) : 0;
         if (!is_numeric($options['fancyOverlayAlpha']) || $options['fancyOverlayAlpha'] > 1 || $options['fancyOverlayAlpha'] < 0) $options['fancyOverlayAlpha'] = .9;
         $args['options'] = json_encode($options);
         if(is_array($args['fID'])) :
