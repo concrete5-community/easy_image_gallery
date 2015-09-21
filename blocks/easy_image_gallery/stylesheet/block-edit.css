@@ -1,3 +1,6 @@
+.ccm-inline-toolbar>li.ccm-inline-toolbar-button button {
+  height:40px;
+}
 .basic-image-form-wrapper .redactor_editor {
     padding: 20px;
 }

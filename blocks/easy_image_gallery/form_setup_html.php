@@ -7,8 +7,7 @@ $tp = new TaskPermission();
     <li class="ccm-sub-toolbar-text-cell">
         <?php if(count($fileSets)) : ?>
         <label for="fsID"><?php echo t("Add a Filset:")?></label>
-        <select name="fsID" id="fsID" style="width: auto !important">
-            <option value="0"><?php echo t('Choose') ?></option>
+        <select name="fsID" multiple id="fsID" style="width:200px" data-placeholder="<?php echo t('Choose') ?>">
             <?php foreach ($fileSets as $key => $fs) :?>
             <option value="<?php echo $fs->getFileSetID() ?>"><?php echo $fs->getFileSetName() ?></option>
             <?php endforeach; ?>
@@ -47,7 +46,7 @@ $tp = new TaskPermission();
 </div>
 
 <script type="text/template" id="imageTemplate">
-    <div class="image-item <% if (image_url.length > 0) { %>filled<% } %> ccm-ui">
+    <div class="image-item <% if (image_url.length > 0) { %>filled fid-<%= fID %> <% } %> ccm-ui">
         <div id="manage-file" class="manage-file">
             <% if (image_url.length > 0) { %>
             <div class="img" style="background-image:url(<%= image_url %>)"></div>
@@ -94,11 +93,17 @@ $tp = new TaskPermission();
 
 
     ccmi18n.filesetAlreadyPicked = "<?php echo t('This Fileset have been already picked, are you sure to add images again ?') ?>";
+    ccmi18n.filesetNotFound = "<?php echo t('Ouups the fileset has not been found here..') ?>";
     ccmi18n.confirmDeleteImage = "<?php echo t('Are you sure to delete this image?') ?>";
     ccmi18n.imageOnly = "<?php echo t('You must select an image file only'); ?>";
     ccmi18n.imageSize = "<?php echo t('Please upload a smaller image, max size is 6 MB') ?>";
 
+
     $(document).ready(function(){
+      $('#fsID').select2({
+        width:'copy'
+      });
+
         <?php if (is_array($fDetails) && count($fDetails)) : ?>
             <?php foreach ($fDetails as $key => $f) : ?>
         fillTemplate(<?php echo json_encode($f) ?>);

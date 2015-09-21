@@ -239,6 +239,7 @@ class Controller extends BlockController
         $this->requireAsset('javascript', 'core/events');
         $this->requireAsset('core/file-manager');
         $this->requireAsset('core/sitemap');
+        $this->requireAsset('select2');
         $this->requireAsset('javascript', 'underscore');
         $this->requireAsset('javascript', 'core/app');
         $this->requireAsset('javascript', 'bootstrap-editable');

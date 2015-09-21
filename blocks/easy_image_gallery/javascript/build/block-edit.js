@@ -240,11 +240,7 @@
           }
 
           // on rempli le container d'hidden qui rerésentent les fsID
-          $("#fsIDs").empty();
-          $.each(selectedFilesets, function(index, value) {
-            if (value)
-              $('<input type="hidden" name="fsIDs[]" />').val(this).appendTo('#fsIDs');
-          });
+          updateFilesetList();
 
           $.get(getFilesetImagesURL,{fsID:fsID}, function(data) {
               if(data.length) {
@@ -253,17 +249,52 @@
                       refreshManager ();
 
                   });
-                  t.val(0);
+                  // t.val(0);
               }
           },'json');
         }
 
+        var removeFileset = function (fsID) {
+          if ($.inArray(fsID, selectedFilesets) === -1) {
+              var addImages = confirm(ccmi18n.filesetNotFound );
+              return;
+          } else {
+              var index = selectedFilesets.indexOf(fsID);
+              if (index > -1) selectedFilesets.splice(index, 1);
+          }
+
+          updateFilesetList();
+
+          $.get(getFilesetImagesURL,{fsID:fsID}, function(data) {
+              if(data.length) {
+                  $.each(data,function(i,f){
+                      $('.fid-' + f.fID).remove();
+                      refreshManager ();
+                  });
+              }
+          },'json');
+        }
+
+        updateFilesetList = function () {
+          // on rempli le container d'hidden qui rerésentent les fsID
+          $("#fsIDs").empty();
+          $.each(selectedFilesets, function(index, value) {
+            if (value)
+              $('<input type="hidden" name="fsIDs[]" />').val(this).appendTo('#fsIDs');
+          });
+          l($('#fsIDs'));
+
+        }
+
         // -- Quand on choisi un Fileset -- \\
 
-        $('#fsID').change(function(){
-            var t = $(this);
-            var v = t.val();
-            addFileset(v);
+        $('#fsID').change(function(e){
+            var r = e.removed;
+            var a = e.added;
+            if (typeof r === 'object') removeFileset(r.id);
+            if (typeof a === 'object') addFileset(a.id);
+            // selectedFilesets = e.val;
+
         });
 
 
