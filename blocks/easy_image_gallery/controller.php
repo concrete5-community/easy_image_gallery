@@ -58,21 +58,33 @@ class Controller extends BlockController
         $fIDs =  $this->getFilesIds();
 
         $this->set('fileSets', $this->getFileSetList());
+        $this->set('selectedFilesets', $this->getSelectedFilesets());
         $this->set('options', $this->getOptionsJson());
         $this->set('fIDs', $fIDs);
         $this->set('fDetails',$this->getFilesDetails($fIDs));
     }
 
     function getFilesIds () {
+      $fIDs = explode(',', $this->fIDs);
+      $selectedFilesets = $this->getSelectedFilesets();
       // En premier on va tester si des fichiers ont été ajoutés dans des filesets.
-      if ($selectedFilesets = $this->getSelectedFilesets()) :
-        
+      if ($selectedFilesets) :
+        $db = Loader::db();
+        $_fIDs = array();
+        foreach ($selectedFilesets as $fsID) :
+          $r = $db->query('SELECT fID FROM FileSetFiles WHERE fsID = ? ORDER BY fsDisplayOrder ASC', array($fsID));
+          while ($row = $r->FetchRow()) {
+              $_fIDs[] = $row['fID'];
+          }
+        endforeach;
+        $fIDs = array_unique(array_merge($fIDs,$_fIDs));
       endif;
-      return explode(',', $this->fIDs);
+      return $fIDs;
     }
 
     function getSelectedFilesets() {
-      $a = explode(',',$this->fsIDs);
+      $options = json_decode($this->options);
+      $a = explode(',',$options->fsIDs);
       return count($a) ? $a : false;
     }
 
@@ -140,8 +152,10 @@ class Controller extends BlockController
         $options =  $this->getOptionsJson();
 
         // Files
-        $files = array_filter(array_map(array($this,'getFileFromFileID') , explode(',', $this->fIDs)));
-        $this->set('fIDs', explode(',', $this->fIDs));
+        $fIDs = $this->getFilesIds();
+        $files = array_filter(array_map(array($this,'getFileFromFileID') , $fIDs));
+        $this->set('fIDs', $fIDs);
+        $this->set('selectedFilesets', $this->getSelectedFilesets());
         $this->set('files',$files );
         $this->set('options', $options );
 

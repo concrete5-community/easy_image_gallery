@@ -36,7 +36,13 @@ $tp = new TaskPermission();
 <?php $this->inc('advanced_options.php', array('view' => $view, 'options' => $controller->getOptionsJson(), 'form' => $form)); ?>
 
 <div class="basic-image-form-wrapper ccm-ui">
-  <div id="fsIDs"></div>
+  <div id="fsIDs">
+    <?php if($selectedFilesets) :
+        foreach ($selectedFilesets as $fsID) :
+          if ($fsID) :?>
+    <input type="hidden" name="fsIDs[]" value="<?php echo $fsID ?>">
+    <?php endif; endforeach; endif ?>
+  </div>
     <div class="easy_image-items"></div>
 </div>
 
@@ -82,6 +88,7 @@ $tp = new TaskPermission();
     var getFileDetailDetailJson = '<?php echo URL::to("/easyimagegallery/tools/getfiledetailsjson")?>';
     var saveFieldURL = '<?php echo URL::to("/easyimagegallery/tools/savefield")?>';
     var getFilesetImagesURL = '<?php echo URL::to("/easyimagegallery/tools/getfilesetimages")?>';
+    var selectedFilesets = <?php echo $selectedFilesets ? json_encode($selectedFilesets) : 'new Array()'  ?>;
 
     easy_image_manager ($('.easy_image-items'));
 

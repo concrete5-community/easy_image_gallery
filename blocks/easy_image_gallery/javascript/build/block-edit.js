@@ -5,7 +5,6 @@
         // Le template
         var _templateSlide = _.template($('#imageTemplate').html());
         var is_first_file = true;
-        filesetAlreadyChoosed = new Array();
         // Les options du FileUpload
         var args = {
             url: CCM_DISPATCHER_FILENAME + '/ccm/system/file/upload',
@@ -232,37 +231,43 @@
 
         }
 
+        var addFileset = function (fsID) {
+          if ($.inArray(fsID, selectedFilesets) > -1) {
+              var addImages = confirm(ccmi18n.filesetAlreadyPicked );
+              if(addImages == false) return;
+          } else {
+              selectedFilesets.push(fsID);
+          }
+
+          // on rempli le container d'hidden qui rerésentent les fsID
+          $("#fsIDs").empty();
+          $.each(selectedFilesets, function(index, value) {
+            if (value)
+              $('<input type="hidden" name="fsIDs[]" />').val(this).appendTo('#fsIDs');
+          });
+
+          $.get(getFilesetImagesURL,{fsID:fsID}, function(data) {
+              if(data.length) {
+                  $.each(data,function(i,f){
+                      fillTemplate(f);
+                      refreshManager ();
+
+                  });
+                  t.val(0);
+              }
+          },'json');
+        }
+
         // -- Quand on choisi un Fileset -- \\
 
         $('#fsID').change(function(){
             var t = $(this);
             var v = t.val();
-            if ($.inArray(v, filesetAlreadyChoosed) > -1) {
-                var addImages = confirm(ccmi18n.filesetAlreadyPicked );
-                if(addImages == false) return;              
-            } else {
-                filesetAlreadyChoosed.push(v);
-            }
-
-            // on rempli le container d'hidden qui rerésentent les fsID
-            $("#fsIDs").empty();
-            $.each(filesetAlreadyChoosed, function(index, value) {
-              $('<input type="hidden" name="fsIDs[]" />').val(this).appendTo('#fsIDs');
-            });
-
-            $.get(getFilesetImagesURL,{fsID:v}, function(data) {
-                if(data.length) {
-                    $.each(data,function(i,f){
-                        fillTemplate(f);
-                        refreshManager ();
-
-                    });
-                    t.val(0);
-                }
-            },'json');
-
+            addFileset(v);
         });
-        // Simpel option open
+
+
+        // Simple option open
         $('#options-button').on('click',function(e){
             $('#advanced-options-content').slideUp();
             $('#options-content').slideToggle();
