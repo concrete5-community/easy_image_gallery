@@ -55,31 +55,17 @@ class Controller extends BlockController
     {
         $this->setAssetEdit();
 
-        $fIDs =  $this->getFilesIds();
+        // $fIDs =  $this->getFilesIds();
 
         $this->set('fileSets', $this->getFileSetList());
         $this->set('selectedFilesets', $this->getSelectedFilesets());
         $this->set('options', $this->getOptionsJson());
-        $this->set('fIDs', $fIDs);
+        // $this->set('fIDs', $fIDs);
         $this->set('fDetails',$this->getFilesDetails($fIDs));
     }
 
     function getFilesIds () {
-      $fIDs = explode(',', $this->fIDs);
-      $selectedFilesets = $this->getSelectedFilesets();
-      // En premier on va tester si des fichiers ont été ajoutés dans des filesets.
-      if ($selectedFilesets) :
-        $db = Loader::db();
-        $_fIDs = array();
-        foreach ($selectedFilesets as $fsID) :
-          $r = $db->query('SELECT fID FROM FileSetFiles WHERE fsID = ? ORDER BY fsDisplayOrder ASC', array($fsID));
-          while ($row = $r->FetchRow()) {
-              $_fIDs[] = $row['fID'];
-          }
-        endforeach;
-        $fIDs = array_unique(array_merge($fIDs,$_fIDs));
-      endif;
-      return $fIDs;
+      // return $fIDs;
     }
 
     function getSelectedFilesets() {
@@ -119,15 +105,42 @@ class Controller extends BlockController
 
     }
     // For Edit / ADD
-    function getFilesDetails ($fIDs) {
-        $tools = new EasyImageGalleryTools();
-        $fDetails = array();
-        foreach ($fIDs as $key => $fID) {
-            $f = File::getByID($fID);
-            if (is_object($f)) $fDetails[] = $tools->getFileDetails($f);
-        }
+    function getFilesDetails ($fIDs, $details = true) {
+      $tools = new EasyImageGalleryTools();
+      $db = Loader::db();
+
+      $fIDs = explode(',', $this->fIDs);
+      $_fIDs = array();
+      $fDetails = array();
+
+      foreach ($fIDs as $key => $value) :
+        if(strpos($value,'fsID') === 0 ): // Le fID commence par "fsID" DOnc on va extraire les images
+          $r = $db->query('SELECT fID FROM FileSetFiles WHERE fsID = ? ORDER BY fsDisplayOrder ASC', array($fsID));
+          while ($row = $r->FetchRow()) {
+              $_fIDs[$row['fID']] = 'fsID' . $fsID;
+          }
+        else:
+          $_fIDs[$fID] = 'file';
+        endif;
+      endforeach;
+      $fIDs = $_fIDs;
+      endif;
+
+      if (!$details) return $fIDs;
+      
+      // Maintenant on extriait les details de chaque images
+      foreach ($fIDs as $fID => $origin) {
+          $f = File::getByID($fID);
+          if (is_object($f)):
+            // Si le fichier fait partie d'un FS, son origine sera numerique
+            // Et représentera le fsID
+            if(strpos($value,'fsID') === 0 ) $origin = substr($value,4);
+             $fDetails[] = $tools->getFileDetails($f,$origin);
+          endif;
+      }
         return $fDetails;
     }
+
     // For view
     function getFileFromFileID ($fID) {
         if ($fID) :
@@ -208,6 +221,10 @@ class Controller extends BlockController
 
     public function checkFileset()  {
       $fIDs =  $this->getFilesIds();
+    }
+
+    public function expandGallery () {
+
     }
 
     public function getFileSetList () {

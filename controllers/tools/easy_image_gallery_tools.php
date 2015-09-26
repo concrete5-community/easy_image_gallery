@@ -83,11 +83,12 @@ class EasyImageGalleryTools extends RouteController
         return false;
     }
 
-    public function getFileDetails ($f = NULL) {
+    public function getFileDetails ($f = NULL, $origin = 'file') {
+      // origin peut être "file" pour une simpleimage
+      // ou numérique si l'image est extraite d'un FS
         if(!$f && $_REQUEST['fID'])
             $f = File::getByID($_REQUEST['fID']);
 
-        // $o = new stdClass;
         if(!is_object($f)) return false;
         $fv = $f->getVersionToModify();
         $to = $fv->getTypeObject();
@@ -98,9 +99,12 @@ class EasyImageGalleryTools extends RouteController
         $o->internal_link_cid = $f->getAttribute('internal_link_cid');
         $o->external_link_url = $f->getAttribute('external_link_url');
         $o->link_type = str_replace('<br/>', '', $f->getAttribute('link_type','display'));
-
-        return $o;
-
+        if (is_numeric($origin)) {
+          $o->originType = 'fileset';
+          $o->fsID = $origin;
+        } else {
+          $o->originType = 'file';
+        }
         $o->urlInline = $this->getFileThumbnailUrl($f);
         $o->title = $f->getTitle();
         $o->description = $f->getDescription();

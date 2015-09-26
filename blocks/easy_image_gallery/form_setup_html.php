@@ -35,18 +35,11 @@ $tp = new TaskPermission();
 <?php $this->inc('advanced_options.php', array('view' => $view, 'options' => $controller->getOptionsJson(), 'form' => $form)); ?>
 
 <div class="basic-image-form-wrapper ccm-ui">
-  <div id="fsIDs">
-    <?php if($selectedFilesets) :
-        foreach ($selectedFilesets as $fsID) :
-          if ($fsID) :?>
-    <input type="hidden" name="fsIDs[]" value="<?php echo $fsID ?>">
-    <?php endif; endforeach; endif ?>
-  </div>
     <div class="easy_image-items"></div>
 </div>
 
 <script type="text/template" id="imageTemplate">
-    <div class="image-item <% if (image_url.length > 0) { %>filled fid-<%= fID %> <% } %> ccm-ui">
+    <div class="image-item <% if (image_url.length > 0) { %>filled fid-<%= fID %> <% } %> ccm-ui <%= originType == 'fileset' ? 'fsID' + origin %>">
         <div id="manage-file" class="manage-file">
             <% if (image_url.length > 0) { %>
             <div class="img" style="background-image:url(<%= image_url %>)"></div>
