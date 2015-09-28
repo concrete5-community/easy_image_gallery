@@ -140,30 +140,14 @@
                 params:{fID:file.fID},
                 pk: '_x',
                 success:function(data) {
-                  // On doit tester la valeur du type et afficher le just input correspndant au type
+                  // On doit tester la valeur du type et afficher le juste input correspndant au type
                   var container = $(this).closest('.image-item');
-                  l(container);
                   if(data.name == 'link_type'){
-                    switch(data.value) {
-                        case 'URL':
-                            container.find('div[data-field=entry-link-page-selector]').hide();
-                            container.find('div[data-field=entry-link-url]').show();
-                            break;
-                        case 'Page':
-                            container.find('div[data-field=entry-link-url]').hide();
-                            container.find('div[data-field=entry-link-page-selector]').show();
-                            break;
-                        default:
-                            container.find('div[data-field=entry-link-page-selector]').hide();
-                            container.find('div[data-field=entry-link-url]').hide();
-                            break;
-                    }
-
+                    displayLinkChooser(container,data.value);
                   };
-                  // if(typeof data == 'object' && !data.success) return data.msg;
                 }
-
             });
+            if (file.link_type) displayLinkChooser($obj,file.link_type);
             // Faire en sorte que les infos restent visibles quand on edite le titre ou la description
             $obj.find('.editable-click').on('shown', function (data) {
                     $(data.target).closest('.item-toolbar').addClass('active');
@@ -171,14 +155,33 @@
             $obj.find('.editable-click').on('hidden', function (data) {
                     $(data.target).closest('.item-toolbar').removeClass('active');
             });
-            // $obj.find('[data-page-selector]').concretePageSelector({'inputName': 'display_', 'cID': 275});
 
         }
 
+
+
         fillTemplate = function (file,$element) {
 
-            var defaults = { fID: '', title: '', link_url: '',internal_link_cid:0,link_type:'', cID: '', description: '', sort_order: '', image_url: ''};
-            if (file) $.extend(defaults, {fID: file.fID, title: file.title, description: file.description, sort_order: '', image_url: file.urlInline,internal_link_cid:file.internal_link_cid, link_type:file.link_type});
+            var defaults = { fID: '',fsID:'', title: '', link_url: '',internal_link_cid:undefined, link_type:'', cID: '', description: '', sort_order: '', image_url: '',originType:'file'};
+            if (file) $.extend(defaults, {fID: file.fID,
+                                          fsID: file.fsID,
+                                          title: file.title,
+                                          description: file.description,
+                                          sort_order: '',
+                                          image_url: file.urlInline,
+                                          internal_link_cid:file.internal_link_cid,
+                                          external_link_url: file.external_link_url,
+                                          link_type:file.link_type,
+                                          originType:file.originType
+                                        });
+
+            if (defaults.originType == 'fileset') {
+                defaults.classes = 'fsid' + defaults.fsID;
+                defaults.inputValue = 'fsID' + defaults.fsID;
+            } else {
+              defaults.classes = '';
+              defaults.inputValue = defaults.fID;
+            }
 
             if ($element) {
                 //  on est dans le cas ou l'utilisateur a uploadé ou choisi un fichier
@@ -203,11 +206,11 @@
                 // Et qui n'ont servi qu'a uploder un fichier
                 newSlide.find('.browse-file').remove();
                 // Mettre à jour le fID
-                newSlide.find('.image-fID').val(file.fID);
+                newSlide.find('.image-fID').val(defaults.inputValue);
             }
-
             newSlide.find('[data-field=entry-link-page-selector]').concretePageSelector({
-                'inputName': 'internal_link_cid[' + defaults.fID + '][]', 'cID':defaults.internal_link_cid
+                'inputName': 'internal_link_cid[' + defaults.fID + '][]',
+                'cID':defaults.internal_link_cid
             })
 
             refreshManager ();
@@ -228,7 +231,6 @@
             } else if (b.is('.disabled')) {
                 b.removeClass('disabled');
             };
-
         }
 
         var addFileset = function (fsID) {
@@ -239,17 +241,12 @@
               selectedFilesets.push(fsID);
           }
 
-          // on rempli le container d'hidden qui rerésentent les fsID
-          updateFilesetList();
-
           $.get(getFilesetImagesURL,{fsID:fsID}, function(data) {
               if(data.length) {
                   $.each(data,function(i,f){
                       fillTemplate(f);
                       refreshManager ();
-
                   });
-                  // t.val(0);
               }
           },'json');
         }
@@ -259,31 +256,15 @@
               var addImages = confirm(ccmi18n.filesetNotFound );
               return;
           } else {
-              var index = selectedFilesets.indexOf(fsID);
-              if (index > -1) selectedFilesets.splice(index, 1);
-          }
-
-          updateFilesetList();
-
-          $.get(getFilesetImagesURL,{fsID:fsID}, function(data) {
-              if(data.length) {
-                  $.each(data,function(i,f){
-                      $('.fid-' + f.fID).remove();
-                      refreshManager ();
-                  });
-              }
-          },'json');
-        }
-
-        updateFilesetList = function () {
-          // on rempli le container d'hidden qui rerésentent les fsID
-          $("#fsIDs").empty();
-          $.each(selectedFilesets, function(index, value) {
-            if (value)
-              $('<input type="hidden" name="fsIDs[]" />').val(this).appendTo('#fsIDs');
-          });
-          l($('#fsIDs'));
-
+            // On recrée un tableau sans le fileset selectionne
+            var index;
+            var _selectedFileset = new Array();
+            for (index = 0; index < selectedFilesets.length; ++index) {
+                if(selectedFilesets[index] != fsID) _selectedFileset.push(selectedFilesets[index]);
+            }
+            selectedFilesets = _selectedFileset;
+          };
+          $('.fsid' + fsID).remove();
         }
 
         // -- Quand on choisi un Fileset -- \\
@@ -317,6 +298,23 @@
         // -- On crée le premier ou le dernier carré -- //
         fillTemplate();
 };
+
+var displayLinkChooser = function (container,type) {
+  switch(type) {
+      case 'URL':
+          container.find('div[data-field=entry-link-page-selector]').hide();
+          container.find('.entry-link-url').show();
+          break;
+      case 'Page':
+          container.find('.entry-link-url').hide();
+          container.find('div[data-field=entry-link-page-selector]').show();
+          break;
+      default:
+          container.find('div[data-field=entry-link-page-selector]').hide();
+          container.find('.entry-link-url').hide();
+          break;
+  }
+}
 
 function l() {
     if(debug==true) {

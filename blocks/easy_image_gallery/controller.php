@@ -55,23 +55,16 @@ class Controller extends BlockController
     {
         $this->setAssetEdit();
 
-        // $fIDs =  $this->getFilesIds();
-
         $this->set('fileSets', $this->getFileSetList());
         $this->set('selectedFilesets', $this->getSelectedFilesets());
         $this->set('options', $this->getOptionsJson());
         // $this->set('fIDs', $fIDs);
-        $this->set('fDetails',$this->getFilesDetails($fIDs));
-    }
-
-    function getFilesIds () {
-      // return $fIDs;
+        $this->set('fDetails',$this->getFilesDetails());
     }
 
     function getSelectedFilesets() {
       $options = json_decode($this->options);
-      $a = explode(',',$options->fsIDs);
-      return count($a) ? $a : false;
+      return (is_array($options->fsIDs) && count($options->fsIDs)) ? $options->fsIDs : array();
     }
 
     function getOptionsJson ()  {
@@ -104,37 +97,42 @@ class Controller extends BlockController
         endif;
 
     }
-    // For Edit / ADD
-    function getFilesDetails ($fIDs, $details = true) {
+
+
+    function getFilesDetails ($fIDs = false, $details = true) {
       $tools = new EasyImageGalleryTools();
       $db = Loader::db();
 
-      $fIDs = explode(',', $this->fIDs);
+      if (!$fIDs)
+        $fIDs = explode(',', $this->fIDs);
       $_fIDs = array();
       $fDetails = array();
 
       foreach ($fIDs as $key => $value) :
         if(strpos($value,'fsID') === 0 ): // Le fID commence par "fsID" DOnc on va extraire les images
+          $fsID = substr($value,4);
           $r = $db->query('SELECT fID FROM FileSetFiles WHERE fsID = ? ORDER BY fsDisplayOrder ASC', array($fsID));
           while ($row = $r->FetchRow()) {
               $_fIDs[$row['fID']] = 'fsID' . $fsID;
           }
         else:
-          $_fIDs[$fID] = 'file';
+          $_fIDs[$value] = 'file';
         endif;
       endforeach;
       $fIDs = $_fIDs;
-      endif;
 
-      if (!$details) return $fIDs;
-      
+      // Si on ne veut pas de details,
+      // On retourne un tableau avec les fID
+      if (!$details) return array_keys($fIDs);
+
       // Maintenant on extriait les details de chaque images
-      foreach ($fIDs as $fID => $origin) {
+      foreach ($fIDs as $fID => $type) {
           $f = File::getByID($fID);
           if (is_object($f)):
+            $origin = "file";
             // Si le fichier fait partie d'un FS, son origine sera numerique
             // Et représentera le fsID
-            if(strpos($value,'fsID') === 0 ) $origin = substr($value,4);
+            if(strpos($type,'fsID') === 0 ) $origin = substr($type,4);
              $fDetails[] = $tools->getFileDetails($f,$origin);
           endif;
       }
@@ -165,13 +163,13 @@ class Controller extends BlockController
         $options =  $this->getOptionsJson();
 
         // Files
-        $fIDs = $this->getFilesIds();
+        $fIDs = $this->getFilesDetails(false,false);
         $files = array_filter(array_map(array($this,'getFileFromFileID') , $fIDs));
         $this->set('fIDs', $fIDs);
         $this->set('selectedFilesets', $this->getSelectedFilesets());
         $this->set('files',$files );
         $this->set('options', $options );
-
+        // print_r($files); exit();
         $this->generatePlaceHolderFromArray($files);
 
         // Lightbox
@@ -216,14 +214,6 @@ class Controller extends BlockController
         $this->set('tags', array_unique($tags));
         $this->set('fileTags', $fileTags);
         $this->set('tags_processing_time', ($time_end - $time_start)/60);
-
-    }
-
-    public function checkFileset()  {
-      $fIDs =  $this->getFilesIds();
-    }
-
-    public function expandGallery () {
 
     }
 
@@ -281,7 +271,6 @@ class Controller extends BlockController
           $ak = FileAttributeKey::getByHandle('internal_link_cid');
           if (is_object($ak)) :
             foreach ($args['internal_link_cid'] as $fID => $valueArray) :
-
               $f = File::getByID($fID);
               if(is_object($f)) :
                 $fv = $f->getVersionToModify();
@@ -290,13 +279,25 @@ class Controller extends BlockController
             endforeach;
           endif;
         endif;
-        $options['fsIDs'] = is_array($args['fsIDs']) ? implode(',',$args['fsIDs']) : 0;
+
+
+        $fsIDs = array();
+        if (is_array($args['fID'])):
+
+          $args['fIDs'] = implode(',', array_unique($args['fID']));
+
+          // Now extract Filset ID and save it in Options
+
+          foreach ($args['fID'] as $value) :
+            if(strpos($value,'fsID') === 0 ):
+              $fsIDs[] = substr($value,4);
+            endif;
+          endforeach;
+          $options['fsIDs'] = $fsIDs;
+        endif;
+
         if (!is_numeric($options['fancyOverlayAlpha']) || $options['fancyOverlayAlpha'] > 1 || $options['fancyOverlayAlpha'] < 0) $options['fancyOverlayAlpha'] = .9;
         $args['options'] = json_encode($options);
-        if(is_array($args['fID'])) :
-            $args['fIDs'] = implode(',', $args['fID']);
-            $this->generatePlaceHolderFromArray ($args['fID']);
-        endif;
         parent::save($args);
     }
 
@@ -322,7 +323,7 @@ class Controller extends BlockController
         $placeholderMaxSize = 600;
 
         if (!is_object($array[0])) :
-            $files = array_map(array($this,'getFileFromFileID') ,$array);
+            $files = $this->getFilesDetails($array);
         else :
             $files = $array;
         endif;

@@ -32,12 +32,10 @@ class EasyImageGalleryTools extends RouteController
                     $fv->updateTags($value);
                     break;
                 default:
-                    $ak = FileAttributeKey::getByHandle('link_type');
+                    $ak = FileAttributeKey::getByHandle($_REQUEST['name']);
                     if (is_object($ak)) :
                       $ak->setAttribute($fv,$value);
                     endif;
-
-                    // $fv->saveAttribute('internal_link_cid',$value);
                   break;
             }
 
@@ -64,7 +62,7 @@ class EasyImageGalleryTools extends RouteController
         // print_r($fsf);
         if (count($fsf)) :
             foreach ($fsf as $key => $f) :
-                $fd = $this->getFileDetails($f);
+                $fd = $this->getFileDetails($f,$_REQUEST['fsID']);
                 if ($fd) $files[] = $fd;
             endforeach;
             Loader::helper('ajax')->sendResult($files);
@@ -96,21 +94,22 @@ class EasyImageGalleryTools extends RouteController
         // We add the Generic type as number to avoid translating issues
         $o->generic_type = $to->getGenericType();
         // Value fro the image link
-        $o->internal_link_cid = $f->getAttribute('internal_link_cid');
-        $o->external_link_url = $f->getAttribute('external_link_url');
+        $o->internal_link_cid = $f->getAttribute('internal_link_cid') ? $f->getAttribute('internal_link_cid') : false;
+        $o->external_link_url = $f->getAttribute('external_link_url') ? $f->getAttribute('external_link_url') : false;
         $o->link_type = str_replace('<br/>', '', $f->getAttribute('link_type','display'));
         if (is_numeric($origin)) {
           $o->originType = 'fileset';
           $o->fsID = $origin;
         } else {
           $o->originType = 'file';
+          $o->fsID = false;
         }
-        $o->urlInline = $this->getFileThumbnailUrl($f);
-        $o->title = $f->getTitle();
-        $o->description = $f->getDescription();
-        $o->fID = $f->getFileID();
-        $o->type = $f->getVersionToModify()->getGenericTypeText();
-        $o->generic_type = $f->getVersionToModify()->getGenericType();
+        // $o->urlInline = $this->getFileThumbnailUrl($f);
+        // $o->title = $f->getTitle();
+        // $o->description = $f->getDescription();
+        // $o->fID = $f->getFileID();
+        // $o->type = $fv->getGenericTypeText();
+        // $o->generic_type = $fv->getGenericType();
 
         return $o;
     }

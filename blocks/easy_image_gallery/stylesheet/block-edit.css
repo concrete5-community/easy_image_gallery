@@ -113,8 +113,12 @@
 .item-toolbar div.ccm-page-selector a.ccm-page-selector-clear i {
   font-size: 10px;
 }
-.item-toolbar div.ccm-page-selector div.ccm-page-selector-page-selected-title {
+.item-toolbar div.ccm-page-selector div.ccm-page-selector-page-selected-title,
+div.item-toolbar div.ccm-page-selector a {
   font-size: 11px;
+}
+div[data-field="entry-link-page-selector"] label {
+  display: none;
 }
 .item-toolbar hr.separator {
   margin: 7px 0;

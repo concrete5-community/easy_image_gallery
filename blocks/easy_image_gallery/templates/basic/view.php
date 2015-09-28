@@ -14,7 +14,13 @@ if (is_array($files) && count($files)) :
         $thumbnailUrl = $f->getThumbnailURL($type->getBaseVersion());
         $imageColumn = $f->getAttribute('gallery_columns') ? $f->getAttribute('gallery_columns') : $options->galleryColumns;
         $retinaThumbnailUrl = $f->getThumbnailURL($type->getDoubledVersion());
-        $fullUrl = $f->getRelativePath();
+        if (!$options->lightbox) :
+          $internal_link = Page::getByID($f->getAttribute('internal_link_cid'), 'ACTIVE');
+          $external_link_url = $f->getAttribute('external_link_url');
+          $fullUrl = $internal_link ? $internal_link->getCollectionLink() : ($external_link_url ? $external_link_url : false) ;
+        else :
+          $fullUrl = $f->getRelativePath();
+        endif;
         $ratio = $f->getAttribute('image_ratio');
         $w = intval($f->getAttribute('width'));
         $h = intval($f->getAttribute('height'));
@@ -22,12 +28,14 @@ if (is_array($files) && count($files)) :
         ?>
         <?php if ($key%$options->galleryColumns == 0) : ?><div class="row"><?php endif ?>
         <div class="box-wrap b-col-<?php echo $options->galleryColumns?> gutter">
-            <a class="img <?php echo $ratio ?>" 
-                style="background-image:url(<?php echo $retinaThumbnailUrl ?>); background-image: -webkit-image-set(url(<?php echo $thumbnailUrl ?>) 1x, url(<?php echo $retinaThumbnailUrl ?>) 2x);" 
+            <a class="img <?php echo $ratio ?>"
+                style="background-image:url(<?php echo $retinaThumbnailUrl ?>); background-image: -webkit-image-set(url(<?php echo $thumbnailUrl ?>) 1x, url(<?php echo $retinaThumbnailUrl ?>) 2x);"
                 href="<?php echo $fullUrl ?>"
+                 <?php if($options->lightbox) : ?>
                 data-image="<?php echo $fullUrl ?>"
                 data-fancybox-group="gallery-<?php echo $bID ?>"
-                <?php if($options->lightboxTitle) : ?> title="<?php echo $f->getTitle() ?> <?php if($options->lightboxDescription &&  $f->getDescription()) echo " - " . $f->getDescription(); ?>" <?php endif ?> 
+                <?php if($options->lightboxTitle) : ?> title="<?php echo $f->getTitle() ?> <?php if($options->lightboxDescription &&  $f->getDescription()) echo " - " . $f->getDescription(); ?>" <?php endif ?>
+                <?php endif ?>
                 >
 
             </a>

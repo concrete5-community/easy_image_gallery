@@ -2,14 +2,13 @@
 $fp = FilePermissions::getGlobal();
 $tp = new TaskPermission();
 ?>
-
 <ul id="" class="ccm-inline-toolbar ccm-ui easy-image-toolbar">
     <li class="ccm-sub-toolbar-text-cell">
         <?php if(count($fileSets)) : ?>
         <label for="fsID"><?php echo t("Add a Filset:")?></label>
-        <select name="fsID" multiple id="fsID" style="width:200px" data-placeholder="<?php echo t('Choose') ?>">
+        <select name="fsID" multiple id="fsID" style="width:300px" data-placeholder="<?php echo t('Choose') ?>">
             <?php foreach ($fileSets as $key => $fs) :?>
-            <option value="<?php echo $fs->getFileSetID() ?>"><?php echo $fs->getFileSetName() ?></option>
+            <option value="<?php echo $fs->getFileSetID() ?>" <?php echo in_array($fs->getFileSetID(),$selectedFilesets) ? 'selected' : '' ?>><?php echo $fs->getFileSetName() ?></option>
             <?php endforeach; ?>
         </select>
         <?php else: ?>
@@ -39,18 +38,18 @@ $tp = new TaskPermission();
 </div>
 
 <script type="text/template" id="imageTemplate">
-    <div class="image-item <% if (image_url.length > 0) { %>filled fid-<%= fID %> <% } %> ccm-ui <%= originType == 'fileset' ? 'fsID' + origin %>">
+    <div class="image-item <% if (image_url.length > 0) { %>filled fid-<%= fID %> <% } %> ccm-ui <%= classes %>">
         <div id="manage-file" class="manage-file">
             <% if (image_url.length > 0) { %>
             <div class="img" style="background-image:url(<%= image_url %>)"></div>
             <div class="item-toolbar">
                 <h4 data-type="textarea" data-name="fvTitle"  class="editable editable-click" title="<?php echo t('Title') ?>"><%= title %></h4>
-                <p class="description editable editable-click" data-placeholder="<?php echo t('Write your description') ?>" data-name="fvDescription" data-type="textarea" <% if (!description) { %> editable-empty <% } %>><%= description %></p>
+                <p><strong><?php echo t('Description : ') ?></strong><span class="description editable editable-click" data-placeholder="<?php echo t('Write your description') ?>" data-name="fvDescription" data-type="textarea" <% if (!description) { %> editable-empty <% } %>><%= description %></span></p>
 
                 <hr class="separator">
 
                 <p><strong><?php echo t('Link type') ?> : </strong><span class="link_type editable editable-click" data-placeholder="<?php echo t('Link type') ?>" data-value="<%= link_type %>" data-name="link_type" data-type="select" data-source='{"None": "None", "URL":"External URL", "Page": "Link to page"}' <% if (!link_type) { %> editable-empty <% } %>><%= link_type %></span></p>
-                <p style="<% if (link_type != 'URL') { %> display: none;<% } %>"><strong><?php echo t('External URL') ?> : </strong><span data-field="entry-link-url"  data-type="textarea" data-name="external_link_url"  class="editable editable-click" data-placeholder="<?php echo t('http://') ?>" title="<?php echo t('External URL') ?>"></span></p>
+                <p class="entry-link-url" style="<% if (link_type != 'URL') { %> display: none;<% } %>"><strong><?php echo t('External URL') ?> : </strong><span data-field="entry-link-url"  data-type="textarea" data-name="external_link_url"  class="editable editable-click" data-placeholder="<?php echo t('http://') ?>" title="<?php echo t('External URL') ?>"><%=external_link_url%></span></p>
                 <div style="<% if (link_type != 'Page') { %> display: none;<% } %>" data-field="entry-link-page-selector" class="form-group">
                    <label><?php echo t('Choose Page:') ?></label>
                     <div data-field="entry-link-page-selector-select"></div>
@@ -62,7 +61,7 @@ $tp = new TaskPermission();
                     <a class="handle"><i class="fa fa-arrows"></i></a>
                 </div>
             </div>
-            <input type="hidden" name="<?php echo $view->field('fID')?>[]" class="image-fID" value="<%=fID%>" />
+            <input type="hidden" name="<?php echo $view->field('fID')?>[]" class="image-fID" value="<%=inputValue%>" />
             <% } else { %>
             <div class="add-file-control">
                 <a href="#" class="upload-file"><i class="fa fa-upload"></i></a><a href="#" class="add-file"><i class="fa fa-th-list"></i></a>
