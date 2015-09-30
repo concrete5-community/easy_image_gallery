@@ -9,6 +9,7 @@ use Concrete\Core\Asset\Asset;
 use Concrete\Core\Asset\AssetList;
 use \Concrete\Core\Http\ResponseAssetGroup;
 use Permissions;
+use Page;
 
 use File;
 use FileSet;
@@ -44,11 +45,11 @@ class Controller extends BlockController
         return t("Easy Images Gallery");
     }
 
-
     public function add() {
         $this->setAssetEdit();
         $this->set('fileSets', $this->getFileSetList());
         $this->set('options', $this->getOptionsJson());
+        $this->set('selectedFilesets',array());
     }
 
     public function edit()
@@ -58,13 +59,12 @@ class Controller extends BlockController
         $this->set('fileSets', $this->getFileSetList());
         $this->set('selectedFilesets', $this->getSelectedFilesets());
         $this->set('options', $this->getOptionsJson());
-        // $this->set('fIDs', $fIDs);
         $this->set('fDetails',$this->getFilesDetails());
     }
 
     function getSelectedFilesets() {
-      $options = json_decode($this->options);
-      return (is_array($options->fsIDs) && count($options->fsIDs)) ? $options->fsIDs : array();
+      $options = json_decode($this->options,true);
+      return (is_array($options['fsIDs']) && count($options['fsIDs'])) ? $options['fsIDs'] : array();
     }
 
     function getOptionsJson ()  {
@@ -283,22 +283,43 @@ class Controller extends BlockController
 
         $fsIDs = array();
         if (is_array($args['fID'])):
-
           $args['fIDs'] = implode(',', array_unique($args['fID']));
-
           // Now extract Filset ID and save it in Options
-
           foreach ($args['fID'] as $value) :
             if(strpos($value,'fsID') === 0 ):
-              $fsIDs[] = substr($value,4);
+              $fsIDs[] = (int)substr($value,4);
             endif;
           endforeach;
-          $options['fsIDs'] = $fsIDs;
+          $options['fsIDs'] =  array_values(array_unique($fsIDs));
         endif;
 
         if (!is_numeric($options['fancyOverlayAlpha']) || $options['fancyOverlayAlpha'] > 1 || $options['fancyOverlayAlpha'] < 0) $options['fancyOverlayAlpha'] = .9;
         $args['options'] = json_encode($options);
         parent::save($args);
+    }
+
+    function getImageLink($f,$options) {
+      if (!$options->lightbox) :
+        if ($f->getAttribute('link_type')):
+          $link_type = str_replace('<br/>', '', $f->getAttribute('link_type','display'));
+          switch ($link_type) {
+            case 'Page':
+              $internal_link = Page::getByID($f->getAttribute('internal_link_cid'), 'ACTIVE');
+              $fullUrl = (is_object($internal_link) && $internal_link->getCollectionID()) ? $internal_link->getCollectionLink() : false;
+              break;
+            case 'URL':
+              $external_link_url = $f->getAttribute('external_link_url');
+              $fullUrl = $external_link_url ? $external_link_url : false;
+              break;
+            default:
+              $fullUrl = false;
+          }
+        endif;
+      else :
+        $fullUrl = $f->getRelativePath();
+      endif;
+
+      return $fullUrl;
     }
 
     function hex2rgb($hex) {

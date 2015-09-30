@@ -17,21 +17,16 @@ $type = \Concrete\Core\File\Image\Thumbnail\Type\Type::getByHandle('file_manager
     <div class="e-col-<?php echo $options->galleryColumns?> grid-sizer"></div>
 <?php foreach ($files as $key => $f) :
     $galleryHasImage = true;
-    // $thumbnailUrl = $f->getThumbnailURL($type->getBaseVersion());
     $placeHolderUrl = $this->getBlockURL() . "/images/placeholders/placeholder-{$f->getAttribute('width')}-{$f->getAttribute('height')}.png";
     $imageColumn = $f->getAttribute('gallery_columns') ? $f->getAttribute('gallery_columns') : $options->galleryColumns;
     $retinaThumbnailUrl = $f->getThumbnailURL($type->getDoubledVersion());
-    if (!$options->lightbox) :
-      $internal_link = Page::getByID($f->getAttribute('internal_link_cid'), 'ACTIVE');
-      $external_link_url = $f->getAttribute('external_link_url');
-      $fullUrl = $internal_link ? $internal_link->getCollectionLink() : ($external_link_url ? $external_link_url : false) ;
-    else :
-      $fullUrl = $f->getRelativePath();
-    endif;
+    $fullUrl = $view->controller->getImageLink($f,$options);
     ?>
     <div class="img masonry-item-collapsed masonry-item e-col-<?php echo $imageColumn ?> <?php echo $fileTags[$f->getFileID()]['handle'] ?>">
-        <?php if($fullUrl) : ?><a href="<?php echo $fullUrl ?>"  <?php if($options->lightbox) : ?>data-image="<?php echo $fullUrl ?>" data-fancybox-group="gallery-<?php echo $bID ?>" <?php if($options->lightboxTitle) : ?> title="<?php echo $f->getTitle() ?><?php if($options->lightboxDescription) : ?> <?php echo $f->getDescription() ?><?php endif ?>"<?php endif ?> ><?php endif ?><?php endif ?>
-            <img src="<?php echo $placeHolderUrl ?>" data-fancybox-group="easy-gallery-<?php  echo $bID?>" data-original="<?php echo $retinaThumbnailUrl ?>" alt="<?php echo $f->getTitle() ?>">
+        <?php if($fullUrl) : ?>
+          <a href="<?php echo $fullUrl ?>"
+            <?php if($options->lightbox) : ?>data-image="<?php echo $fullUrl ?>" data-fancybox-group="gallery-<?php echo $bID ?>" <?php if($options->lightboxTitle) : ?> title="<?php echo $f->getTitle() ?><?php if($options->lightboxDescription) : ?> <?php echo $f->getDescription() ?><?php endif ?>"<?php endif ?><?php endif ?>><?php endif ?>
+            <img src="<?php echo $placeHolderUrl ?>" data-original="<?php echo $retinaThumbnailUrl ?>" alt="<?php echo $f->getTitle() ?>">
             <div class="info-wrap">
                 <div class="info">
                     <div>

@@ -14,13 +14,8 @@ if (is_array($files) && count($files)) :
         $thumbnailUrl = $f->getThumbnailURL($type->getBaseVersion());
         $imageColumn = $f->getAttribute('gallery_columns') ? $f->getAttribute('gallery_columns') : $options->galleryColumns;
         $retinaThumbnailUrl = $f->getThumbnailURL($type->getDoubledVersion());
-        if (!$options->lightbox) :
-          $internal_link = Page::getByID($f->getAttribute('internal_link_cid'), 'ACTIVE');
-          $external_link_url = $f->getAttribute('external_link_url');
-          $fullUrl = $internal_link ? $internal_link->getCollectionLink() : ($external_link_url ? $external_link_url : false) ;
-        else :
-          $fullUrl = $f->getRelativePath();
-        endif;
+        $fullUrl = $view->controller->getImageLink($f,$options);
+        $tag = ($fullUrl || $options->lightbox) ? 'a' : 'span';
         $ratio = $f->getAttribute('image_ratio');
         $w = intval($f->getAttribute('width'));
         $h = intval($f->getAttribute('height'));
@@ -28,9 +23,11 @@ if (is_array($files) && count($files)) :
         ?>
         <?php if ($key%$options->galleryColumns == 0) : ?><div class="row"><?php endif ?>
         <div class="box-wrap b-col-<?php echo $options->galleryColumns?> gutter">
-            <a class="img <?php echo $ratio ?>"
+            <<?php echo $tag ?> class="img <?php echo $ratio ?>"
                 style="background-image:url(<?php echo $retinaThumbnailUrl ?>); background-image: -webkit-image-set(url(<?php echo $thumbnailUrl ?>) 1x, url(<?php echo $retinaThumbnailUrl ?>) 2x);"
+                <?php if($fullUrl) : ?>
                 href="<?php echo $fullUrl ?>"
+                <?php endif ?>
                  <?php if($options->lightbox) : ?>
                 data-image="<?php echo $fullUrl ?>"
                 data-fancybox-group="gallery-<?php echo $bID ?>"
@@ -38,7 +35,7 @@ if (is_array($files) && count($files)) :
                 <?php endif ?>
                 >
 
-            </a>
+            </<?php echo $tag ?>>
             <div class="loader"><i class="fa fa-circle-o-notch fa-spin"></i></div>
 
             <div class="info">

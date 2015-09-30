@@ -1,7 +1,6 @@
 <?php defined('C5_EXECUTE') or die("Access Denied.");
 $c = Page::getCurrentPage();
 $galleryHasImage = false;
-
 if ($c->isEditMode()) : ?>
     <div class="ccm-edit-mode-disabled-item" style="width: <?php echo $width; ?>; height: <?php echo $height; ?>">
         <div style="padding: 40px 0px 40px 0px"><?php echo t('Easy Gallery disabled in edit mode.')?></div>
@@ -23,27 +22,7 @@ elseif (is_array($files) && count($files)) :
         $imageColumn = $f->getAttribute('gallery_columns') ? $f->getAttribute('gallery_columns') : $options->galleryColumns;
         $placeHolderUrl = $this->getBlockURL() . "/images/placeholders/placeholder-{$f->getAttribute('width')}-{$f->getAttribute('height')}.png";
         $retinaThumbnailUrl = $f->getThumbnailURL($type->getDoubledVersion());
-
-        if (!$options->lightbox) :
-          if ($f->getAttribute('link_type')):
-            $link_type = str_replace('<br/>', '', $f->getAttribute('link_type','display'));
-            switch ($link_type) {
-              case 'Page':
-                $internal_link = Page::getByID($f->getAttribute('internal_link_cid'), 'ACTIVE');
-                $fullUrl = is_object($internal_link) ? $internal_link->getCollectionLink() : false;
-                break;
-              case 'Page':
-                $external_link_url = $f->getAttribute('external_link_url');
-                $fullUrl = $external_link_url ? $external_link_url : false;
-                break;
-              default:
-                $fullUrl = false;
-            }
-          endif;
-        else :
-          $fullUrl = $f->getRelativePath();
-        endif;
-
+        $fullUrl = $view->controller->getImageLink($f,$options);
         ?>
         <div class="box-wrap masonry-item b-col-<?php echo $imageColumn ?> <?php echo $fileTags[$f->getFileID()]['handle'] ?>">
             <?php if($fullUrl) : ?><a href="<?php echo $fullUrl ?>" <?php if ($options->lightbox) : ?> data-fancybox-group="easy-gallery-<?php echo $bID?>" data-image="<?php echo $fullUrl ?>" <?php if($options->lightboxTitle) : ?> title="<?php echo $f->getTitle() ?><?php if($options->lightboxDescription) : ?> <?php echo $f->getDescription() ?><?php endif ?>"<?php endif ?> <?php endif ?>><?php endif ?>

@@ -194,6 +194,57 @@ div[data-field="entry-link-page-selector"] label {
 .options-content label {
     margin-right: 10px;
 }
+
+/* -- Les fileset -- */
+div.image-item.fileset-0 {
+  border: 5px solid #0197F6;
+}
+div.image-item.fileset-1 {
+  border: 5px solid #FF958C;
+}
+div.image-item.fileset-2 {
+  border: 5px solid #9EA93F;
+}
+div.image-item.fileset-3 {
+  border: 5px solid #CA61C3;
+}
+div.image-item.fileset-4 {
+  border: 5px solid #315C2B;
+}
+
+div.image-item.fileset-0:after {
+  background: #0197F6;
+  color:#fff;
+}
+div.image-item.fileset-1:after {
+  background: #FF958C;
+  color:#000;
+}
+div.image-item.fileset-2:after {
+  background: #9EA93F;
+  color:#fff;
+}
+div.image-item.fileset-3:after {
+  background: #CA61C3;
+  color:#fff;
+}
+div.image-item.fileset-4:after {
+  background: #315C2B;
+  color:#fff;
+}
+div.image-item.fileset .img {
+  left:0; top: 0; right: 0; bottom: 0;
+}
+.fileset:after {
+    content: " " attr(rel) " ";
+    position: absolute;
+    display: inline-block;
+    top:-5px; right: 0;
+    padding: 2px 7px;
+    font-size: 10px;
+}
+
+
 /* -- ccm-ui -- */
 .ccm-ui .popover.top {
 z-index: 9999; /* To go up of the tool bar */

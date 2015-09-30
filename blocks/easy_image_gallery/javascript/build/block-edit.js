@@ -150,10 +150,10 @@
             if (file.link_type) displayLinkChooser($obj,file.link_type);
             // Faire en sorte que les infos restent visibles quand on edite le titre ou la description
             $obj.find('.editable-click').on('shown', function (data) {
-                    $(data.target).closest('.item-toolbar').addClass('active');
+                $(data.target).closest('.item-toolbar').addClass('active');
             });
             $obj.find('.editable-click').on('hidden', function (data) {
-                    $(data.target).closest('.item-toolbar').removeClass('active');
+                $(data.target).closest('.item-toolbar').removeClass('active');
             });
 
         }
@@ -172,24 +172,23 @@
                                           internal_link_cid:file.internal_link_cid,
                                           external_link_url: file.external_link_url,
                                           link_type:file.link_type,
-                                          originType:file.originType
+                                          originType:file.originType,
+                                          filesetName : file.filesetName
                                         });
-
             if (defaults.originType == 'fileset') {
-                defaults.classes = 'fsid' + defaults.fsID;
-                defaults.inputValue = 'fsID' + defaults.fsID;
+              defaults.classes = 'fileset fsid' + defaults.fsID + " fileset-" + selectedFilesets.indexOf(parseInt(defaults.fsID)) ;
+              defaults.inputValue = 'fsID' + defaults.fsID;
             } else {
               defaults.classes = '';
               defaults.inputValue = defaults.fID;
             }
 
             if ($element) {
-                //  on est dans le cas ou l'utilisateur a uploadé ou choisi un fichier
-                // dans ce cas on replace le carré vide par un element rempli avec image et tout le toutim
-               var newSlide = $element.replaceWithPush(_templateSlide(defaults));
+              //  on est dans le cas ou l'utilisateur a uploadé ou choisi un fichier
+              // dans ce cas on replace le carré vide par un element rempli avec image et tout le toutim
+              var newSlide = $element.replaceWithPush(_templateSlide(defaults));
 
             } else {
-
                 // On ajoute un nouveau avec ou sans infos
                 sliderEntriesContainer.append(_templateSlide(defaults));
                 var newSlide = $('.image-item').last();
@@ -238,8 +237,12 @@
               var addImages = confirm(ccmi18n.filesetAlreadyPicked );
               if(addImages == false) return;
           } else {
-              selectedFilesets.push(fsID);
+              selectedFilesets.push(parseInt(fsID));
           }
+          var unique=selectedFilesets.filter(function(itm,i,a){
+              return i==a.indexOf(itm);
+          });
+          selectedFilesets = unique;
 
           $.get(getFilesetImagesURL,{fsID:fsID}, function(data) {
               if(data.length) {
@@ -252,7 +255,8 @@
         }
 
         var removeFileset = function (fsID) {
-          if ($.inArray(fsID, selectedFilesets) === -1) {
+          fsID = parseInt(fsID);
+          if ($.inArray(parseInt(fsID), selectedFilesets) === -1) {
               var addImages = confirm(ccmi18n.filesetNotFound );
               return;
           } else {

@@ -97,9 +97,16 @@ class EasyImageGalleryTools extends RouteController
         $o->internal_link_cid = $f->getAttribute('internal_link_cid') ? $f->getAttribute('internal_link_cid') : false;
         $o->external_link_url = $f->getAttribute('external_link_url') ? $f->getAttribute('external_link_url') : false;
         $o->link_type = str_replace('<br/>', '', $f->getAttribute('link_type','display'));
+
         if (is_numeric($origin)) {
+          $fs = FileSet::getByID($origin);
+          if (!is_object($fs)) :
+            $o->originType = 'file';
+            $o->fsID = false;
+          endif;
           $o->originType = 'fileset';
           $o->fsID = $origin;
+          $o->filesetName = $fs->getFileSetName();
         } else {
           $o->originType = 'file';
           $o->fsID = false;

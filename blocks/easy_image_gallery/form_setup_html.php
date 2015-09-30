@@ -38,7 +38,7 @@ $tp = new TaskPermission();
 </div>
 
 <script type="text/template" id="imageTemplate">
-    <div class="image-item <% if (image_url.length > 0) { %>filled fid-<%= fID %> <% } %> ccm-ui <%= classes %>">
+    <div class="image-item <% if (image_url.length > 0) { %>filled fid-<%= fID %> <% } %> ccm-ui <%= classes %>" <% if (originType == 'fileset') { %>rel="<%=filesetName%>" <% } %>>
         <div id="manage-file" class="manage-file">
             <% if (image_url.length > 0) { %>
             <div class="img" style="background-image:url(<%= image_url %>)"></div>
