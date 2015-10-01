@@ -2,9 +2,9 @@
 defined('C5_EXECUTE') or die("Access Denied.");
 
 $this->inc('form_setup_html.php', array('view' => $view,
-										'fIDs' => $controller->getFilesIds(),
-										'fDetails' => $controller->getFilesDetails($controller->getFilesIds()),
+										'fDetails' => $controller->getFilesDetails(false, true),
 										'fileSets' => $controller->getFileSetList(),
+										'selectedFilesets' => $controller->getSelectedFilesets(),
 										'isComposer' => true
 										));
 ?>
@@ -17,4 +17,4 @@ $this->inc('form_setup_html.php', array('view' => $view,
 	.easy-image-toolbar .ccm-inline-toolbar-button-cancel {
 		display: none;
 	}
-</style>										
+</style>

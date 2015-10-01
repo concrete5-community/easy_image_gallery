@@ -9,6 +9,7 @@ use Concrete\Core\Asset\Asset;
 use Concrete\Core\Asset\AssetList;
 use \Concrete\Core\Http\ResponseAssetGroup;
 use Permissions;
+use Page;
 
 use File;
 use FileSet;
@@ -32,7 +33,7 @@ class Controller extends BlockController
     protected $btCacheBlockOutputForRegisteredUsers = false;
     protected $btSupportsInlineEdit = true;
     protected $btSupportsInlineAdd = true;
-    protected $btDefaultSet = 'multimedia';    
+    protected $btDefaultSet = 'multimedia';
 
     public function getBlockTypeDescription()
     {
@@ -44,29 +45,29 @@ class Controller extends BlockController
         return t("Easy Images Gallery");
     }
 
-
     public function add() {
         $this->setAssetEdit();
-
         $this->set('fileSets', $this->getFileSetList());
-        $this->set('options', $this->getOptionsJson());        
+        $this->set('options', $this->getOptionsJson());
+        $this->set('selectedFilesets',array());
     }
 
     public function edit()
     {
         $this->setAssetEdit();
 
-        $fIDs =  $this->getFilesIds();
-
         $this->set('fileSets', $this->getFileSetList());
+        $this->set('selectedFilesets', $this->getSelectedFilesets());
         $this->set('options', $this->getOptionsJson());
-        $this->set('fIDs', $fIDs);
-        $this->set('fDetails',$this->getFilesDetails($fIDs));
+        $this->set('fDetails',$this->getFilesDetails());
     }
 
-    function getFilesIds () { return explode(',', $this->fIDs); }
-    
-    function getOptionsJson ()  { 
+    function getSelectedFilesets() {
+      $options = json_decode($this->options,true);
+      return (is_array($options['fsIDs']) && count($options['fsIDs'])) ? $options['fsIDs'] : array();
+    }
+
+    function getOptionsJson ()  {
         // Cette fonction retourne un objet option
         // SI le block n'existe pas encore, ces options sont préréglées
         // Si il existe on transfome la chaine de charactère en json
@@ -92,20 +93,52 @@ class Controller extends BlockController
             if(!$options->hoverTitleColor) $options->hoverTitleColor = '#333333';
             if(!$options->dateFormat) $options->dateFormat = 'm - Y';
             // end legacy
-            return $options ; 
+            return $options ;
         endif;
 
     }
-    // For Edit / ADD
-    function getFilesDetails ($fIDs) {
-        $tools = new EasyImageGalleryTools();        
-        $fDetails = array();
-        foreach ($fIDs as $key => $fID) {
-            $f = File::getByID($fID);
-            if (is_object($f)) $fDetails[] = $tools->getFileDetails($f);            
-        }
+
+
+    function getFilesDetails ($fIDs = false, $details = true) {
+      $tools = new EasyImageGalleryTools();
+      $db = Loader::db();
+
+      if (!$fIDs)
+        $fIDs = explode(',', $this->fIDs);
+      $_fIDs = array();
+      $fDetails = array();
+
+      foreach ($fIDs as $key => $value) :
+        if(strpos($value,'fsID') === 0 ): // Le fID commence par "fsID" DOnc on va extraire les images
+          $fsID = substr($value,4);
+          $r = $db->query('SELECT fID FROM FileSetFiles WHERE fsID = ? ORDER BY fsDisplayOrder ASC', array($fsID));
+          while ($row = $r->FetchRow()) {
+              $_fIDs[$row['fID']] = 'fsID' . $fsID;
+          }
+        else:
+          $_fIDs[$value] = 'file';
+        endif;
+      endforeach;
+      $fIDs = $_fIDs;
+
+      // Si on ne veut pas de details,
+      // On retourne un tableau avec les fID
+      if (!$details) return array_keys($fIDs);
+
+      // Maintenant on extriait les details de chaque images
+      foreach ($fIDs as $fID => $type) {
+          $f = File::getByID($fID);
+          if (is_object($f)):
+            $origin = "file";
+            // Si le fichier fait partie d'un FS, son origine sera numerique
+            // Et représentera le fsID
+            if(strpos($type,'fsID') === 0 ) $origin = substr($type,4);
+             $fDetails[] = $tools->getFileDetails($f,$origin);
+          endif;
+      }
         return $fDetails;
     }
+
     // For view
     function getFileFromFileID ($fID) {
         if ($fID) :
@@ -116,25 +149,27 @@ class Controller extends BlockController
 
     public function registerViewAssets()
     {
-        $this->requireAsset('css','easy-gallery-view');        
+        $this->requireAsset('css','easy-gallery-view');
         $this->requireAsset('javascript', 'jquery');
         $this->requireAsset('javascript', 'imagesloaded');
         $this->requireAsset('javascript', 'masonry');
         $this->requireAsset('javascript', 'isotope');
         $this->requireAsset('javascript', 'lazyload');
-        
+
     }
 
     public function view() {
-        $time_start = microtime(true);         
+        $time_start = microtime(true);
         $options =  $this->getOptionsJson();
 
         // Files
-        $files = array_filter(array_map(array($this,'getFileFromFileID') , explode(',', $this->fIDs)));
-        $this->set('fIDs', explode(',', $this->fIDs));
+        $fIDs = $this->getFilesDetails(false,false);
+        $files = array_filter(array_map(array($this,'getFileFromFileID') , $fIDs));
+        $this->set('fIDs', $fIDs);
+        $this->set('selectedFilesets', $this->getSelectedFilesets());
         $this->set('files',$files );
         $this->set('options', $options );
-
+        // print_r($files); exit();
         $this->generatePlaceHolderFromArray($files);
 
         // Lightbox
@@ -160,10 +195,10 @@ class Controller extends BlockController
                 if (!$avID) continue;
 
                 $query = $db->GetAll("
-                    SELECT opt.value  
-                    FROM atSelectOptions opt, 
+                    SELECT opt.value
+                    FROM atSelectOptions opt,
                     atSelectOptionsSelected sel
-                         
+
                     WHERE sel.avID = ?
                     AND sel.atSelectOptionID = opt.ID",$avID);
 
@@ -182,7 +217,6 @@ class Controller extends BlockController
 
     }
 
-
     public function getFileSetList () {
         $fs = new FileSetList();
         return $fs->get();
@@ -195,7 +229,7 @@ class Controller extends BlockController
     public function isValueEmpty() {
         if ($this->fIDs)
             return false;
-        else 
+        else
             return true;
     }
 
@@ -210,6 +244,9 @@ class Controller extends BlockController
         $this->requireAsset('javascript', 'bootstrap/popover');
         $this->requireAsset('javascript', 'jquery/ui');
         $this->requireAsset('javascript', 'core/events');
+        $this->requireAsset('core/file-manager');
+        $this->requireAsset('core/sitemap');
+        $this->requireAsset('select2');
         $this->requireAsset('javascript', 'underscore');
         $this->requireAsset('javascript', 'core/app');
         $this->requireAsset('javascript', 'bootstrap-editable');
@@ -224,13 +261,65 @@ class Controller extends BlockController
     {
         $options = $args;
         unset($options['fID']);
+        unset($options['internal_link_cid']);
+
+        // Vu que je n'arrive pas encore a sauver en ajax l'attribut cID du lien
+        // (meme si dans le filemanager la fenetre attribut y arrive)
+        // je boucle et sauve pour chaque fichier
+        // var_dump($args['fsIDs']);die();
+        if(is_array($args['internal_link_cid'])) :
+          $ak = FileAttributeKey::getByHandle('internal_link_cid');
+          if (is_object($ak)) :
+            foreach ($args['internal_link_cid'] as $fID => $valueArray) :
+              $f = File::getByID($fID);
+              if(is_object($f)) :
+                $fv = $f->getVersionToModify();
+                $ak->setAttribute($fv,$valueArray[0]);
+              endif;
+            endforeach;
+          endif;
+        endif;
+
+
+        $fsIDs = array();
+        if (is_array($args['fID'])):
+          $args['fIDs'] = implode(',', array_unique($args['fID']));
+          // Now extract Filset ID and save it in Options
+          foreach ($args['fID'] as $value) :
+            if(strpos($value,'fsID') === 0 ):
+              $fsIDs[] = (int)substr($value,4);
+            endif;
+          endforeach;
+          $options['fsIDs'] =  array_values(array_unique($fsIDs));
+        endif;
+
         if (!is_numeric($options['fancyOverlayAlpha']) || $options['fancyOverlayAlpha'] > 1 || $options['fancyOverlayAlpha'] < 0) $options['fancyOverlayAlpha'] = .9;
         $args['options'] = json_encode($options);
-        if(is_array($args['fID'])) : 
-            $args['fIDs'] = implode(',', $args['fID']);
-            $this->generatePlaceHolderFromArray ($args['fID']);
-        endif;
         parent::save($args);
+    }
+
+    function getImageLink($f,$options) {
+      if (!$options->lightbox) :
+        if ($f->getAttribute('link_type')):
+          $link_type = str_replace('<br/>', '', $f->getAttribute('link_type','display'));
+          switch ($link_type) {
+            case 'Page':
+              $internal_link = Page::getByID($f->getAttribute('internal_link_cid'), 'ACTIVE');
+              $fullUrl = (is_object($internal_link) && $internal_link->getCollectionID()) ? $internal_link->getCollectionLink() : false;
+              break;
+            case 'URL':
+              $external_link_url = $f->getAttribute('external_link_url');
+              $fullUrl = $external_link_url ? $external_link_url : false;
+              break;
+            default:
+              $fullUrl = false;
+          }
+        endif;
+      else :
+        $fullUrl = $f->getRelativePath();
+      endif;
+
+      return $fullUrl;
     }
 
     function hex2rgb($hex) {
@@ -248,17 +337,17 @@ class Controller extends BlockController
        $rgb = array($r, $g, $b);
        return implode(",", $rgb); // returns the rgb values separated by commas
        // return $rgb; // returns an array with the rgb values
-    } 
+    }
 
     function generatePlaceHolderFromArray ($array) {
 
         $placeholderMaxSize = 600;
 
         if (!is_object($array[0])) :
-            $files = array_map(array($this,'getFileFromFileID') ,$array);
+            $files = $this->getFilesDetails($array);
         else :
             $files = $array;
-        endif; 
+        endif;
 
         foreach ($files as $key => $f) :
             if(!is_object($f)) continue;
@@ -269,17 +358,17 @@ class Controller extends BlockController
 
             $placeholderFile =  __DIR__ . "/images/placeholders/placeholder-$w-$h.png";
             if (file_exists($placeholderFile)) continue;
-            $img = imagecreatetruecolor($new_width,$new_height); 
-            imagesavealpha($img, true); 
+            $img = imagecreatetruecolor($new_width,$new_height);
+            imagesavealpha($img, true);
 
-            // Fill the image with transparent color 
-            $color = imagecolorallocatealpha($img,0x00,0x00,0x00,110); 
-            imagefill($img, 0, 0, $color); 
+            // Fill the image with transparent color
+            $color = imagecolorallocatealpha($img,0x00,0x00,0x00,110);
+            imagefill($img, 0, 0, $color);
 
-            // Save the image to file.png 
-            imagepng($img,$placeholderFile); 
+            // Save the image to file.png
+            imagepng($img,$placeholderFile);
 
-            // Destroy image 
+            // Destroy image
             imagedestroy($img);
         endforeach;
     }

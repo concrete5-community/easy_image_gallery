@@ -14,7 +14,8 @@ if (is_array($files) && count($files)) :
         $thumbnailUrl = $f->getThumbnailURL($type->getBaseVersion());
         $imageColumn = $f->getAttribute('gallery_columns') ? $f->getAttribute('gallery_columns') : $options->galleryColumns;
         $retinaThumbnailUrl = $f->getThumbnailURL($type->getDoubledVersion());
-        $fullUrl = $f->getRelativePath();
+        $fullUrl = $view->controller->getImageLink($f,$options);
+        $tag = ($fullUrl || $options->lightbox) ? 'a' : 'span';
         $ratio = $f->getAttribute('image_ratio');
         $w = intval($f->getAttribute('width'));
         $h = intval($f->getAttribute('height'));
@@ -22,15 +23,19 @@ if (is_array($files) && count($files)) :
         ?>
         <?php if ($key%$options->galleryColumns == 0) : ?><div class="row"><?php endif ?>
         <div class="box-wrap b-col-<?php echo $options->galleryColumns?> gutter">
-            <a class="img <?php echo $ratio ?>" 
-                style="background-image:url(<?php echo $retinaThumbnailUrl ?>); background-image: -webkit-image-set(url(<?php echo $thumbnailUrl ?>) 1x, url(<?php echo $retinaThumbnailUrl ?>) 2x);" 
+            <<?php echo $tag ?> class="img <?php echo $ratio ?>"
+                style="background-image:url(<?php echo $retinaThumbnailUrl ?>); background-image: -webkit-image-set(url(<?php echo $thumbnailUrl ?>) 1x, url(<?php echo $retinaThumbnailUrl ?>) 2x);"
+                <?php if($fullUrl) : ?>
                 href="<?php echo $fullUrl ?>"
+                <?php endif ?>
+                 <?php if($options->lightbox) : ?>
                 data-image="<?php echo $fullUrl ?>"
                 data-fancybox-group="gallery-<?php echo $bID ?>"
-                <?php if($options->lightboxTitle) : ?> title="<?php echo $f->getTitle() ?> <?php if($options->lightboxDescription &&  $f->getDescription()) echo " - " . $f->getDescription(); ?>" <?php endif ?> 
+                <?php if($options->lightboxTitle) : ?> title="<?php echo $f->getTitle() ?> <?php if($options->lightboxDescription &&  $f->getDescription()) echo " - " . $f->getDescription(); ?>" <?php endif ?>
+                <?php endif ?>
                 >
 
-            </a>
+            </<?php echo $tag ?>>
             <div class="loader"><i class="fa fa-circle-o-notch fa-spin"></i></div>
 
             <div class="info">

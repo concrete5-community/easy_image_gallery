@@ -1,3 +1,6 @@
+.ccm-inline-toolbar>li.ccm-inline-toolbar-button button {
+  height:40px;
+}
 .basic-image-form-wrapper .redactor_editor {
     padding: 20px;
 }
@@ -9,7 +12,7 @@
 .image-item {
     display: inline-block;
     position: relative;
-    height: 200px;
+    height: 250px;
     width: 200px;
     border: 2px dotted #e0e0e0;
     outline: none;
@@ -29,7 +32,7 @@
 .image-item canvas {/* Le knob actif */
     position: absolute;
     top: 25px;
-    left: 25px;        
+    left: 25px;
     transition:all .3s cubic-bezier(1,-1.21,0,1.33);
 }
 .image-item canvas.out {
@@ -51,13 +54,13 @@
     color: #bbb;
 }
 .image-item .process.in {
-    transform:translateX(0);   
+    transform:translateX(0);
     opacity: 1;
 }
 
 .image-item input[type="file" ], .image-item .knob {
     display: none;
-}    
+}
 
 /* Le layer qui permet d'editer la photo une fois chargée */
 
@@ -75,7 +78,7 @@
 .item-toolbar h4 {
     font-size: 12px;
     text-transform: none;
-    margin: 50px 10px 0 10px;
+    margin: 30px 10px 0 10px;
     padding-bottom: 5px;
     border-bottom: 1px solid #ddd;
 }
@@ -86,7 +89,7 @@
     margin: 5px 10px;
 
 }
-.image-item:hover .item-toolbar, 
+.image-item:hover .item-toolbar,
 .item-toolbar.active {
     opacity: 1
 }
@@ -99,8 +102,27 @@
     left: 5px;
     background-size: cover;
 }
-
-
+/* Le page seector doit etre plus petit */
+.item-toolbar div.ccm-page-selector {
+  padding: 5px;
+  margin: 3px 8px;
+}
+.item-toolbar div.ccm-page-selector a.ccm-page-selector-clear {
+  line-height: 0;
+}
+.item-toolbar div.ccm-page-selector a.ccm-page-selector-clear i {
+  font-size: 10px;
+}
+.item-toolbar div.ccm-page-selector div.ccm-page-selector-page-selected-title,
+div.item-toolbar div.ccm-page-selector a {
+  font-size: 11px;
+}
+div[data-field="entry-link-page-selector"] label {
+  display: none;
+}
+.item-toolbar hr.separator {
+  margin: 7px 0;
+}
 /* -- Le bloc qui contient les deux boutons (ajout et filemanager) -- */
 
 .add-file-control {
@@ -117,7 +139,7 @@
     text-align: center;
     width: 50%;
     background: #eee;
-    
+
 }
 .add-file-control a:first-child {
     width: 49%;
@@ -129,7 +151,7 @@
     background: #eee;
     position: absolute;
     width: 100%;
-    bottom: 0;        
+    bottom: 0;
 }
 .item-controls i {
     line-height: 35px;
@@ -142,7 +164,7 @@
 .remove-item {
     position: absolute;
     right: 10px;
-    top: 10px;        
+    top: 10px;
 }
 .basic-image-form-wrapper i.fa-sort-asc {
     position: absolute;
@@ -167,11 +189,62 @@
     z-index: 1;
     position: relative;
     background-color: #eee;
-    padding: 20px;    
+    padding: 20px;
 }
 .options-content label {
     margin-right: 10px;
 }
+
+/* -- Les fileset -- */
+div.image-item.fileset-0 {
+  border: 5px solid #0197F6;
+}
+div.image-item.fileset-1 {
+  border: 5px solid #FF958C;
+}
+div.image-item.fileset-2 {
+  border: 5px solid #9EA93F;
+}
+div.image-item.fileset-3 {
+  border: 5px solid #CA61C3;
+}
+div.image-item.fileset-4 {
+  border: 5px solid #315C2B;
+}
+
+div.image-item.fileset-0:after {
+  background: #0197F6;
+  color:#fff;
+}
+div.image-item.fileset-1:after {
+  background: #FF958C;
+  color:#000;
+}
+div.image-item.fileset-2:after {
+  background: #9EA93F;
+  color:#fff;
+}
+div.image-item.fileset-3:after {
+  background: #CA61C3;
+  color:#fff;
+}
+div.image-item.fileset-4:after {
+  background: #315C2B;
+  color:#fff;
+}
+div.image-item.fileset .img {
+  left:0; top: 0; right: 0; bottom: 0;
+}
+.fileset:after {
+    content: " " attr(rel) " ";
+    position: absolute;
+    display: inline-block;
+    top:-5px; right: 0;
+    padding: 2px 7px;
+    font-size: 10px;
+}
+
+
 /* -- ccm-ui -- */
 .ccm-ui .popover.top {
 z-index: 9999; /* To go up of the tool bar */

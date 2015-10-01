@@ -1,12 +1,10 @@
    debug = true;
-
    function easy_image_manager (sliderEntriesContainer) {
 
         // sliderEntriesContainer = $('.image-items');
         // Le template
         var _templateSlide = _.template($('#imageTemplate').html());
         var is_first_file = true;
-        filesetAlreadyChoosed = new Array();
         // Les options du FileUpload
         var args = {
             url: CCM_DISPATCHER_FILENAME + '/ccm/system/file/upload',
@@ -42,11 +40,11 @@
                     initUploadActionOnItem(newItem);
                 }
                 is_first_file = false;
-          
+
             },
             progress: function(e, data) {
                 var progress = parseInt(data.loaded / data.total * 100, 10);
-                
+
                 var target = data.newItem ? data.newItem : $(e.target);
                 if (progress < 95) {
                     target.find('.knob').val(progress).change();
@@ -62,7 +60,7 @@
                 var target = data.newItem ? data.newItem : $(e.target);
                 $.get(getFileDetailDetailJson,{fID:data.result[0].fID}, function(file) {
                     fillTemplate(file,target);
-                },'json');                 
+                },'json');
             },
             fail: function(r,data) {
                 //jQuery.fn.dialog.closeTop();
@@ -84,7 +82,7 @@
         // Quand on clique sur le cadre on déclenche l'ouverture du navigateur de fichier Navigateur
         var attachUploadEvent = function ($obj) {
             // On lance le fileupload
-            $obj.fileupload(args);    
+            $obj.fileupload(args);
             $inputfile = $obj.find('input.browse-file');
             $obj.find('.upload-file').on('click',function(e){
                 e.preventDefault();
@@ -116,7 +114,7 @@
                 ConcreteFileManager.launchDialog(function (data) {
                     // data : Object {fID: "1"}
                     $.get(getFileDetailDetailJson,{fID:data.fID}, function(file) {
-                        if(file.generic_type == '1'){ // if(file.type == "Image"){
+                        if(file.generic_type == "1"){ // if(file.type == "Image"){
                             jQuery.fn.dialog.hideLoader();
                             fillTemplate(file,Launcher);
                            // On ajoute un nouvel element vide a coté
@@ -126,13 +124,14 @@
                         jQuery.fn.dialog.hideLoader();
                         alert('You must select an image file only')
 
-                    },'json');                    
+                    },'json');
                 });
             });
         }
 
         var initImageEdit = function ($obj,file) {
             $obj.find(".dialog-launch").dialog();
+
             $obj.find('.editable-click').editable({
                 ajaxOptions: {dataType: 'json'},
                 emptytext: ccmi18n.none,
@@ -140,30 +139,56 @@
                 url: saveFieldURL,
                 params:{fID:file.fID},
                 pk: '_x',
-
+                success:function(data) {
+                  // On doit tester la valeur du type et afficher le juste input correspndant au type
+                  var container = $(this).closest('.image-item');
+                  if(data.name == 'link_type'){
+                    displayLinkChooser(container,data.value);
+                  };
+                }
             });
+            if (file.link_type) displayLinkChooser($obj,file.link_type);
             // Faire en sorte que les infos restent visibles quand on edite le titre ou la description
             $obj.find('.editable-click').on('shown', function (data) {
-                    $(data.target).closest('.item-toolbar').addClass('active');
+                $(data.target).closest('.item-toolbar').addClass('active');
             });
             $obj.find('.editable-click').on('hidden', function (data) {
-                    $(data.target).closest('.item-toolbar').removeClass('active');
+                $(data.target).closest('.item-toolbar').removeClass('active');
             });
 
         }
 
+
+
         fillTemplate = function (file,$element) {
 
-            var defaults = { fID: '', title: '', link_url: '', cID: '', description: '', sort_order: '', image_url: ''};
-            if (file) $.extend(defaults, {fID: file.fID, title: file.title, description: file.description, sort_order: '', image_url: file.urlInline});
+            var defaults = { fID: '',fsID:'', title: '', link_url: '',internal_link_cid:undefined, link_type:'', cID: '', description: '', sort_order: '', image_url: '',originType:'file'};
+            if (file) $.extend(defaults, {fID: file.fID,
+                                          fsID: file.fsID,
+                                          title: file.title,
+                                          description: file.description,
+                                          sort_order: '',
+                                          image_url: file.urlInline,
+                                          internal_link_cid:file.internal_link_cid,
+                                          external_link_url: file.external_link_url,
+                                          link_type:file.link_type,
+                                          originType:file.originType,
+                                          filesetName : file.filesetName
+                                        });
+            if (defaults.originType == 'fileset') {
+              defaults.classes = 'fileset fsid' + defaults.fsID + " fileset-" + selectedFilesets.indexOf(parseInt(defaults.fsID)) ;
+              defaults.inputValue = 'fsID' + defaults.fsID;
+            } else {
+              defaults.classes = '';
+              defaults.inputValue = defaults.fID;
+            }
 
             if ($element) {
-                //  on est dans le cas ou l'utilisateur a uploadé ou choisi un fichier
-                // dans ce cas on replace le carré vide par un element rempli avec image et tout le toutim
-               var newSlide = $element.replaceWithPush(_templateSlide(defaults));
+              //  on est dans le cas ou l'utilisateur a uploadé ou choisi un fichier
+              // dans ce cas on replace le carré vide par un element rempli avec image et tout le toutim
+              var newSlide = $element.replaceWithPush(_templateSlide(defaults));
 
             } else {
-
                 // On ajoute un nouveau avec ou sans infos
                 sliderEntriesContainer.append(_templateSlide(defaults));
                 var newSlide = $('.image-item').last();
@@ -180,9 +205,13 @@
                 // Et qui n'ont servi qu'a uploder un fichier
                 newSlide.find('.browse-file').remove();
                 // Mettre à jour le fID
-                newSlide.find('.image-fID').val(file.fID);
+                newSlide.find('.image-fID').val(defaults.inputValue);
             }
-            
+            newSlide.find('[data-field=entry-link-page-selector]').concretePageSelector({
+                'inputName': 'internal_link_cid[' + defaults.fID + '][]',
+                'cID':defaults.internal_link_cid
+            })
+
             refreshManager ();
 
             return newSlide;
@@ -195,50 +224,76 @@
             sliderEntriesContainer.sortable({handle: ".handle"});
             // On regarde si on desactive ou pas le bouton submit
             // en comptant les carré rempli d'image
-            var b = $('#easy_image_save'); 
+            var b = $('#easy_image_save');
             if(!$('.image-item.filled').size()) {
                 b.addClass('disabled');
             } else if (b.is('.disabled')) {
                 b.removeClass('disabled');
             };
+        }
 
+        var addFileset = function (fsID) {
+          if ($.inArray(fsID, selectedFilesets) > -1) {
+              var addImages = confirm(ccmi18n.filesetAlreadyPicked );
+              if(addImages == false) return;
+          } else {
+              selectedFilesets.push(parseInt(fsID));
+          }
+          var unique=selectedFilesets.filter(function(itm,i,a){
+              return i==a.indexOf(itm);
+          });
+          selectedFilesets = unique;
+
+          $.get(getFilesetImagesURL,{fsID:fsID}, function(data) {
+              if(data.length) {
+                  $.each(data,function(i,f){
+                      fillTemplate(f);
+                      refreshManager ();
+                  });
+              }
+          },'json');
+        }
+
+        var removeFileset = function (fsID) {
+          fsID = parseInt(fsID);
+          if ($.inArray(parseInt(fsID), selectedFilesets) === -1) {
+              var addImages = confirm(ccmi18n.filesetNotFound );
+              return;
+          } else {
+            // On recrée un tableau sans le fileset selectionne
+            var index;
+            var _selectedFileset = new Array();
+            for (index = 0; index < selectedFilesets.length; ++index) {
+                if(selectedFilesets[index] != fsID) _selectedFileset.push(selectedFilesets[index]);
+            }
+            selectedFilesets = _selectedFileset;
+          };
+          $('.fsid' + fsID).remove();
         }
 
         // -- Quand on choisi un Fileset -- \\
 
-        $('#fsID').change(function(){
-            var t = $(this);
-            var v = t.val();
-            if ($.inArray(v, filesetAlreadyChoosed) > -1) {
-                var addImages = confirm(ccmi18n.filesetAlreadyPicked );
-                if(addImages == false) {
-                    return;
-                }
-            }
-            filesetAlreadyChoosed.push(v);
-            $.get(getFilesetImagesURL,{fsID:v}, function(data) {
-                if(data.length) {
-                    $.each(data,function(i,f){
-                        fillTemplate(f);
-                        refreshManager ();        
+        $('#fsID').change(function(e){
+            var r = e.removed;
+            var a = e.added;
+            if (typeof r === 'object') removeFileset(r.id);
+            if (typeof a === 'object') addFileset(a.id);
+            // selectedFilesets = e.val;
 
-                    });
-                    t.val(0);
-                }
-            },'json');
-            
         });
-        // Simpel option open
-        $('#options-button').on('click',function(e){          
+
+
+        // Simple option open
+        $('#options-button').on('click',function(e){
             $('#advanced-options-content').slideUp();
             $('#options-content').slideToggle();
         });
         // Advanced options open
-        $('#advanced-options-button').on('click',function(e){      
+        $('#advanced-options-button').on('click',function(e){
             $('#options-content').slideUp();
             $('#advanced-options-content').slideToggle();
-            
-        });        
+
+        });
         // Closes buttons
         $('.easy_image_options_close').on('click',function(e){
             $('.options-content').slideUp();
@@ -248,21 +303,38 @@
         fillTemplate();
 };
 
+var displayLinkChooser = function (container,type) {
+  switch(type) {
+      case 'URL':
+          container.find('div[data-field=entry-link-page-selector]').hide();
+          container.find('.entry-link-url').show();
+          break;
+      case 'Page':
+          container.find('.entry-link-url').hide();
+          container.find('div[data-field=entry-link-page-selector]').show();
+          break;
+      default:
+          container.find('div[data-field=entry-link-page-selector]').hide();
+          container.find('.entry-link-url').hide();
+          break;
+  }
+}
+
 function l() {
     if(debug==true) {
         for (var i=0; i < arguments.length; i++) {
             console.log(arguments[i]);
         }
-    } 
+    }
 }
-        
+
 var submitBlockForm = function () {
     $('#ccm-block-form').submit();
     ConcreteEvent.fire('EditModeExitInlineSaved');
     ConcreteEvent.fire('EditModeExitInline', {
         action: 'save_inline'
-    });    
-} 
+    });
+}
 
 function cancelBlockForm () {
     ConcreteEvent.fire('EditModeExitInline');
