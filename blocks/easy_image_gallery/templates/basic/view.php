@@ -19,7 +19,7 @@ if (is_array($files) && count($files)) :
         $ratio = $f->getAttribute('image_ratio');
         $w = intval($f->getAttribute('width'));
         $h = intval($f->getAttribute('height'));
-        $ratio = $w > $h ? 'horizontal' : ($w == $h ? 'square' : 'vertical');
+        $ratio = $w > $h ? 'horizontal' : ($w == $h ? 'square' : 'vertical');        
         ?>
         <?php if ($key%$options->galleryColumns == 0) : ?><div class="row"><?php endif ?>
         <div class="box-wrap b-col-<?php echo $options->galleryColumns?> gutter">

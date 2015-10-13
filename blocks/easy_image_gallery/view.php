@@ -23,8 +23,10 @@ elseif (is_array($files) && count($files)) :
         $placeHolderUrl = $this->getBlockURL() . "/images/placeholders/placeholder-{$f->getAttribute('width')}-{$f->getAttribute('height')}.png";
         $retinaThumbnailUrl = $f->getThumbnailURL($type->getDoubledVersion());
         $fullUrl = $view->controller->getImageLink($f,$options);
+        $tags = isset($tagsObject->fileTags[$f->getFileID()]) ? implode(' ',$tagsObject->fileTags[$f->getFileID()]) : '';
+
         ?>
-        <div class="box-wrap masonry-item b-col-<?php echo $imageColumn ?> <?php echo $fileTags[$f->getFileID()]['handle'] ?>">
+        <div class="box-wrap masonry-item b-col-<?php echo $imageColumn ?> <?php echo $tags ?>">
             <?php if($fullUrl) : ?><a href="<?php echo $fullUrl ?>" <?php if ($options->lightbox) : ?> data-fancybox-group="easy-gallery-<?php echo $bID?>" data-image="<?php echo $fullUrl ?>" <?php if($options->lightboxTitle) : ?> title="<?php echo $f->getTitle() ?><?php if($options->lightboxDescription) : ?> <?php echo $f->getDescription() ?><?php endif ?>"<?php endif ?> <?php endif ?>><?php endif ?>
                 <img src="<?php echo $placeHolderUrl ?>" data-original="<?php echo $retinaThumbnailUrl ?>" alt="<?php echo $f->getTitle() ?>">
             <?php if($fullUrl) : ?></a><?php endif ?>

@@ -181,7 +181,8 @@ class Controller extends BlockController
         endif;
 
         // Tags
-        $tags = $fileTags = array();
+        $tagsObject = new stdClass();
+        $tags = $tagsObject->fileTags = array();
         $ak = FileAttributeKey::getByHandle('image_tag');
 
         $db = Loader::db();
@@ -202,17 +203,21 @@ class Controller extends BlockController
                     WHERE sel.avID = ?
                     AND sel.atSelectOptionID = opt.ID",$avID);
 
+
                 foreach($query as $opt) {
                     $handle = preg_replace('/\s*/', '', strtolower($opt['value']));
-                    $fileTags[$file->getFileID()] = array('value' => $opt['value'], 'handle' => $handle );
-                    $tags[$handle] = $opt['value'];
+                    // var_dump($opt);
+                    $tagsObject->fileTags[$file->getFileID()][] = $handle;
+                    $tagsObject->tags[$handle] = $opt['value'];
                 }
+                // echo "---------------\n";
 
             endif ;
         endforeach;
+        // die();
         $time_end = microtime(true);
-        $this->set('tags', array_unique($tags));
-        $this->set('fileTags', $fileTags);
+        // $this->set('tags', array_unique($tags));
+        $this->set('tagsObject', $tagsObject);
         $this->set('tags_processing_time', ($time_end - $time_start)/60);
 
     }

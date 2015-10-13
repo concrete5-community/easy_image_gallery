@@ -21,8 +21,9 @@ $type = \Concrete\Core\File\Image\Thumbnail\Type\Type::getByHandle('file_manager
     $imageColumn = $f->getAttribute('gallery_columns') ? $f->getAttribute('gallery_columns') : $options->galleryColumns;
     $retinaThumbnailUrl = $f->getThumbnailURL($type->getDoubledVersion());
     $fullUrl = $view->controller->getImageLink($f,$options);
+    $tags = isset($tagsObject->fileTags[$f->getFileID()]) ? implode(' ',$tagsObject->fileTags[$f->getFileID()]) : '';
     ?>
-    <div class="img masonry-item-collapsed masonry-item e-col-<?php echo $imageColumn ?> <?php echo $fileTags[$f->getFileID()]['handle'] ?>">
+    <div class="img masonry-item-collapsed masonry-item e-col-<?php echo $imageColumn ?> <?php echo $tags ?>">
         <?php if($fullUrl) : ?>
           <a href="<?php echo $fullUrl ?>"
             <?php if($options->lightbox) : ?>data-image="<?php echo $fullUrl ?>" data-fancybox-group="gallery-<?php echo $bID ?>" <?php if($options->lightboxTitle) : ?> title="<?php echo $f->getTitle() ?><?php if($options->lightboxDescription) : ?> <?php echo $f->getDescription() ?><?php endif ?>"<?php endif ?><?php endif ?>><?php endif ?>
