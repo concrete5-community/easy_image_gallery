@@ -1,0 +1,111 @@
+.easy-gallery-masonry {
+    /*background-color: #000;*/
+    /*opacity: 0;*/
+    transition:.3s;
+}
+.easy-gallery-masonry.loaded {
+    opacity: 1;
+}
+.easy-gallery.clickable {
+    cursor: pointer;
+}
+
+figure.curtain {
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  margin: 10px 1%;
+  width: 100%;
+  color: #000000;
+  text-align: center;
+}
+figure.curtain * {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  -webkit-transition: all 0.6s ease;
+  transition: all 0.6s ease;
+}
+figure.curtain img {
+  opacity: 1;
+  width: 100%;
+}
+figure.curtain:after,
+figure.curtain:before {
+  background: #ffffff;
+  width: 100%;
+  height: 0;
+  position: absolute;
+  content: '';
+  opacity: 0.5;
+  -webkit-transition: all 0.4s ease-in-out;
+  transition: all 0.4s ease-in-out;
+  z-index: 1;
+}
+figure.curtain:after {
+  top: 0;
+  left: 0;
+}
+figure.curtain:before {
+  right: 0;
+  bottom: 0;
+}
+figure.curtain figcaption {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  -webkit-transform: translateY(-50%);
+  transform: translateY(-50%);
+  z-index: 2;
+}
+figure.curtain h2,
+figure.curtain p {
+  margin: 0;
+  width: 100%;
+  opacity: 0;
+}
+figure.curtain h2 {
+  padding: 0 30px;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+figure.curtain p {
+  padding: 0 50px;
+  font-size: 0.8em;
+  font-weight: 500;
+}
+figure.curtain a {
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  position: absolute;
+  z-index: 2;
+}
+figure.curtain:hover img,
+figure.curtain.hover img {
+  -webkit-filter: grayscale(100%);
+  filter: grayscale(100%);
+}
+figure.curtain:hover:after,
+figure.curtain.hover:after,
+figure.curtain:hover:before,
+figure.curtain.hover:before {
+  width: 100%;
+  height: 100%;
+}
+figure.curtain:hover figcaption h2,
+figure.curtain.hover figcaption h2,
+figure.curtain:hover figcaption p,
+figure.curtain.hover figcaption p {
+  -webkit-transition-delay: 0.2s;
+  transition-delay: 0.2s;
+}
+figure.curtain:hover figcaption h2,
+figure.curtain.hover figcaption h2 {
+  opacity: 1;
+}
+figure.curtain:hover figcaption p,
+figure.curtain.hover figcaption p {
+  opacity: 0.7;
+}
