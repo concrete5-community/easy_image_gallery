@@ -8,7 +8,6 @@ if (is_array($files) && count($files)) :
     <div class="easy-gallery easy-gallery-boxes easy-gallery-boxes-basic <?php if($options->lightbox) : ?>clickable<? endif?>" id="easy-gallery-<?php echo $bID?>">
         <div class="b-col-<?php echo $options->galleryColumns?> grid-sizer"></div>
     <?php foreach ($files as $key => $f) :
-        // $f = File::getByID($fID);
         if(!is_object($f)) continue;
         $galleryHasImage = true;
         $thumbnailUrl = $f->getThumbnailURL($type->getBaseVersion());

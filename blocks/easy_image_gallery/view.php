@@ -1,6 +1,4 @@
 <?php defined('C5_EXECUTE') or die("Access Denied.");
-$c = Page::getCurrentPage();
-$galleryHasImage = false;
 if ($c->isEditMode()) : ?>
     <div class="ccm-edit-mode-disabled-item" style="width: <?php echo $width; ?>; height: <?php echo $height; ?>">
         <div style="padding: 40px 0px 40px 0px"><?php echo t('Easy Gallery disabled in edit mode.')?></div>

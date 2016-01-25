@@ -109,7 +109,7 @@ class Controller extends BlockController
       $fDetails = array();
 
       foreach ($fIDs as $key => $value) :
-        if(strpos($value,'fsID') === 0 ): // Le fID commence par "fsID" DOnc on va extraire les images
+        if(strpos($value,'fsID') === 0 ): // Le fID commence par "fsID" Donc on va extraire les images
           $fsID = substr($value,4);
           $r = $db->query('SELECT fID FROM FileSetFiles WHERE fsID = ? ORDER BY fsDisplayOrder ASC', array($fsID));
           while ($row = $r->FetchRow()) {
@@ -161,6 +161,7 @@ class Controller extends BlockController
     public function view() {
         $time_start = microtime(true);
         $options =  $this->getOptionsJson();
+        $c = Page::getCurrentPage();
 
         // Files
         $fIDs = $this->getFilesDetails(false,false);
@@ -187,8 +188,14 @@ class Controller extends BlockController
 
         $db = Loader::db();
 
+        $galleryHasImage = false;
+
+
         foreach ($files as $file):
             if(!is_object($file)) continue;
+
+            // Now tags
+
             if ($file->getAttribute('image_tag')) :
 
                 $v = array($file->getFileID(), $file->getFileVersionID(), $ak->getAttributeKeyID());
@@ -206,19 +213,44 @@ class Controller extends BlockController
 
                 foreach($query as $opt) {
                     $handle = preg_replace('/\s*/', '', strtolower($opt['value']));
-                    // var_dump($opt);
                     $tagsObject->fileTags[$file->getFileID()][] = $handle;
                     $tagsObject->tags[$handle] = $opt['value'];
                 }
-                // echo "---------------\n";
-
             endif ;
+
+            // Other variables
+            $file->gallery = array();
+            $file->gallery['imageColumn'] = $file->getAttribute('gallery_columns') ? $file->getAttribute('gallery_columns') : $options->galleryColumns;
+            $file->gallery['placeHolderUrl'] = $this->getBlockURL() . "/images/placeholders/placeholder-{$file->getAttribute('width')}-{$file->getAttribute('height')}.png";
+            $file->gallery['retinaThumbnailUrl'] = $file->getThumbnailURL($type->getDoubledVersion());
+            $file->gallery['fullUrl'] = $view->controller->getImageLink($f,$options);
+            $tags = isset($tagsObject->fileTags[$f->getFileID()]) ? implode(' ',$tagsObject->fileTags[$f->getFileID()]) : '';
+
+
         endforeach;
         // die();
         $time_end = microtime(true);
-        // $this->set('tags', array_unique($tags));
         $this->set('tagsObject', $tagsObject);
         $this->set('tags_processing_time', ($time_end - $time_start)/60);
+
+        if ($c->isEditMode() && $options['hideEditMode']) :
+            echo '<div class="ccm-edit-mode-disabled-item">';
+            echo '<p style="padding: 40px 0px 40px 0px;">' .
+              '[ ' . $blockTypeHandle . ' ] ' .
+              '<strong>' .
+              ucwords($templateCleanName) .
+              ($isCarousel ? t(' carousel') : '') .
+              ($isMasonry ? t(' masonry') : '') .
+              ($isStaticGrid ? t(' static grid') : '') .
+              '</strong>' .
+              t(' with ') .
+              $styleObject->columns .
+              t(' columns and ') .
+              (!(in_array('no-gap',$styleObject->classesArray)) ? t(' regular Gap ') : t('no Gap ')) .
+              t(' disabled in edit mode.') .
+              '</p>';
+            echo '</div>';
+        endif;
 
     }
 
