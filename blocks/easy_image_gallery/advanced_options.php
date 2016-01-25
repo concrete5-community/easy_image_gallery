@@ -5,11 +5,19 @@ $options = $controller->getOptionsJson();
 ?>
 <div id="options" class="">
     <div class="row">
-        <div id="options-content" class="ccm-ui col-md-12 options-content">                             
+        <div id="options-content" class="ccm-ui col-md-12 options-content">
             <div class="form-group">
                 <?php echo $form->label($view->field('galleryColumns'), t('Number of Columns')); ?>
-                <?php  echo $form->select($view->field('galleryColumns'), array(2 => '2', 3 => '3', 4 => '4', 6 => '6'), $options->galleryColumns); ?>            
-            </div>        
+                <?php  echo $form->select($view->field('galleryColumns'), array(1=> '1',2 => '2', 3 => '3', 4 => '4',5 => '5', 6 => '6'), $options->galleryColumns); ?>
+            </div>
+            <div class="form-group">
+                <?php echo $form->label($view->field('galleryGap'), t('Display Gap')); ?>
+                <?php  echo $form->select($view->field('galleryGap'), array(0=>t('No'), 1=>t('Yes')), $options->galleryGap); ?>
+            </div>
+            <div class="form-group">
+                <?php echo $form->label($view->field('galleryType'), t('Type of Display')); ?>
+                <?php  echo $form->select($view->field('galleryType'), array(t('static') => 'static', t('Masonry') => 'masonry', t('Carousel') => 'carousel'), $options->galleryType); ?>
+            </div>
             <div class="form-group">
                 <?php echo $form->label($view->field('lightbox'), t('Lightbox')); ?>
                 <?php  echo $form->select($view->field('lightbox'), array('0' => t('None'), 'intense' => t('Full Screen'), 'lightbox' => 'Simple Lightbox'  ), $options->lightbox); ?>
@@ -26,19 +34,19 @@ $options = $controller->getOptionsJson();
                 <input type="radio" name="<?php echo $view->field('galleryDescription')?>" value="0" <?php echo $options->galleryDescription == 0 ? 'checked' : '' ?>> <?php echo t('No') ?>
                 <small><?php echo t('(On some Templates)') ?></small>
             </div>
-            <div class="form-group">                
+            <div class="form-group">
                 <?php echo $form->label('displayDate', t('Display Date')); ?>
                 <input type="radio" name="<?php echo $view->field('displayDate')?>" value="1" <?php echo $options->displayDate == 1 ? 'checked' : '' ?>> <?php echo t('Yes') ?>
                 <input type="radio" name="<?php echo $view->field('displayDate')?>" value="0" <?php echo $options->displayDate == 0 ? 'checked' : '' ?>> <?php echo t('No') ?>
             </div>
             <hr>
-            <div class="form-group">                
+            <div class="form-group">
                 <?php echo $form->label('filtering', t('Display Tags filtering')); ?>
                 <input type="radio" name="<?php echo $view->field('filtering')?>" value="1" <?php echo $options->filtering == 1 ? 'checked' : '' ?>> <?php echo t('Yes') ?>
                 <input type="radio" name="<?php echo $view->field('filtering')?>" value="0" <?php echo $options->filtering == 0 ? 'checked' : '' ?>> <?php echo t('No') ?>
                 <small><?php echo t('(Attribute "Tags" must be filled on at least one image)') ?></small>
             </div>
-            <div class="form-group">                
+            <div class="form-group">
                 <?php echo $form->label('filtering', t('Display Text filtering')); ?>
                 <input type="radio" name="<?php echo $view->field('textFiltering')?>" value="1" <?php echo $options->textFiltering == 1 ? 'checked' : '' ?>> <?php echo t('Yes') ?>
                 <input type="radio" name="<?php echo $view->field('textFiltering')?>" value="0" <?php echo $options->textFiltering == 0 ? 'checked' : '' ?>> <?php echo t('No') ?>
@@ -55,15 +63,15 @@ $options = $controller->getOptionsJson();
                 <input type="radio" name="<?php echo $view->field('lightboxDescription')?>" value="0" <?php echo $options->lightboxDescription == 0 ? 'checked' : '' ?>> <?php echo t('No') ?>
             </div>
             <hr>
-            <button class="btn btn-primary easy_image_options_close" type="button" id=""><?php echo t('Close')?></button>   
+            <button class="btn btn-primary easy_image_options_close" type="button" id=""><?php echo t('Close')?></button>
         </div>
     </div>
 </div>
 
 <div id="advanced-options" class="">
     <div class="row">
-        <div id="advanced-options-content" class="ccm-ui col-md-12 options-content">                             
-            <div class="form-group">                
+        <div id="advanced-options-content" class="ccm-ui col-md-12 options-content">
+            <div class="form-group">
                 <?php echo $form->label('preloadImages', t('Preload full image')); ?>
                 <input type="radio" name="<?php echo $view->field('preloadImages')?>" value="1" <?php echo $options->preloadImages == 1 ? 'checked' : '' ?>> <?php echo t('Yes') ?>
                 <input type="radio" name="<?php echo $view->field('preloadImages')?>" value="0" <?php echo $options->preloadImages == 0 ? 'checked' : '' ?>> <?php echo t('No') ?>
@@ -84,14 +92,14 @@ $options = $controller->getOptionsJson();
                 <?php echo $form->label('hoverTitleColor', t('Hover Image Title Color')); ?><small><?php echo t('(On some Templates)') ?></small>
                 <?php $col = new Concrete\Core\Form\Service\Widget\Color(); $col->output('hoverTitleColor',$options->hoverTitleColor,array('preferredFormat'=>'rgba')) ?>
             </div>
-          
+
             <div class="form-group">
                 <?php echo $form->label('dateFormat', t('Date Format (PHP date format)')); ?>
                 <?php echo $form->text('dateFormat',$options->dateFormat) ?>
-            </div>                     
-            
+            </div>
+
             <hr>
-            <button class="btn btn-primary easy_image_options_close" type="button" id=""><?php echo t('Close')?></button>   
+            <button class="btn btn-primary easy_image_options_close" type="button" id=""><?php echo t('Close')?></button>
         </div>
     </div>
 </div>

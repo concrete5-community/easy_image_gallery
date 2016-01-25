@@ -158,8 +158,26 @@ class Controller extends BlockController
 
     }
 
-    public function view() {
-        $time_start = microtime(true);
+    public function getGallery($b,$controller,$choice = array()) {
+
+      if (!$controller) $controller = $this;
+
+      $choice = array_merge(array(
+                        'type' => 'tiny',
+                        'wrapperTag' => 'div',
+                        'itemTag' => 'div',
+                        'AddInnerDiv' => true,
+                        'topicAttributeKeyHandle' => 'project_topics',
+                        'alternativeDateAttributeHandle' => 'date',
+                        'hideEditMode' => true,
+                        'user' => false,
+                        'topics' => false,
+                        'forcePopup' => false,
+                        'slider' => false,
+                        'additionalWrapperClasses' => array(),
+                        'additionalItemClasses' => array()),
+                        $choice);
+
         $options =  $this->getOptionsJson();
         $c = Page::getCurrentPage();
 
@@ -190,8 +208,26 @@ class Controller extends BlockController
 
         $galleryHasImage = false;
 
+        $vars = array();
+        $nh = Loader::helper('navigation');
+        $vars['th'] = $th = Loader::helper('text');
+        $vars['dh'] = $dh = Core::make('helper/date');
+        $type = \Concrete\Core\File\Image\Thumbnail\Type\Type::getByHandle($choice['type']);
 
-        foreach ($files as $file):
+        $isCarousel = $options->galleryType == 'carousel';
+        $isMasonry = $options->galleryType == 'masonry';
+        $isStaticGrid = !$isMasonry && !$isCarousel;
+
+        $vars['column_class'] = 'col-mcl-' . intval(12 / $options->galleryColumns);
+        $vars['$masonryWrapperAttributes'] = 'data-gridsizer=".' . $vars['column_class'] . '" data-bid="' . $b->getBlockID() . '"';
+        $vars['gap'] = $options->galleryGap ? 'with-gap' : 'no-gap';
+
+        // Item classes
+        if(!$isCarousel) $itemClasses[] = $vars['column_class'];
+        $itemClasses[] = 'item';
+        if ($isMasonry) $itemClasses[] = 'masonry-item';
+
+        foreach ($files as $key => $file):
             if(!is_object($file)) continue;
 
             // Now tags
@@ -219,21 +255,77 @@ class Controller extends BlockController
             endif ;
 
             // Other variables
-            $file->gallery = array();
-            $file->gallery['imageColumn'] = $file->getAttribute('gallery_columns') ? $file->getAttribute('gallery_columns') : $options->galleryColumns;
-            $file->gallery['placeHolderUrl'] = $this->getBlockURL() . "/images/placeholders/placeholder-{$file->getAttribute('width')}-{$file->getAttribute('height')}.png";
-            $file->gallery['retinaThumbnailUrl'] = $file->getThumbnailURL($type->getDoubledVersion());
-            $file->gallery['fullUrl'] = $view->controller->getImageLink($f,$options);
+            $file->details = array();
+            $file->details['imageColumn'] = $file->getAttribute('gallery_columns') ? $file->getAttribute('gallery_columns') : $options->galleryColumns;
+            $file->details['placeHolderUrl'] = $this->getBlockURL() . "/images/placeholders/placeholder-{$file->getAttribute('width')}-{$file->getAttribute('height')}.png";
+            $file->details['retinaThumbnailUrl'] = $file->getThumbnailURL($type->getDoubledVersion());
+            $file->details['fullUrl'] = $view->controller->getImageLink($f,$options);
             $tags = isset($tagsObject->fileTags[$f->getFileID()]) ? implode(' ',$tagsObject->fileTags[$f->getFileID()]) : '';
 
+            // Item classes
+            $itemClassesTemp = $itemClasses;
+            $itemClassesTemp[] = $key % 2 == 1 ? 'pair' : 'impair';
+            $itemClassesTemp[] = $tags;
 
-        endforeach;
-        // die();
-        $time_end = microtime(true);
-        $this->set('tagsObject', $tagsObject);
-        $this->set('tags_processing_time', ($time_end - $time_start)/60);
+            $file->details['itemOpenTag'] = (($key%$options->gallery_columns == 0 && $isStaticGrid) ? '<div class="row' . ($options->galleryGap ? '' : ' no-gap') . '">' : '') . '<' . $choice['itemTag'] . ' class="' .implode(' ',  array_merge($itemClassesTemp,$choice['additionalItemClasses'])) . '" style="' . ($options->galleryGap && $isCarousel ? 'margin:0 15px;') . 'width:' . 100 / $options->galleryColumns . '%' . '"' . ' >' . ($choice['AddInnerDiv'] ? '<div class="inner">' : '');
+            $page->mclDetails['itemCloseTag'] = ($choice['AddInnerDiv'] ? '</div>' : '') . '</' . $choice['itemTag'] . '>' . (($key%$options->galleryColumns == ($options->galleryColumns) - 1 || ($key == count($files)-1)) && $isStaticGrid ? '</div><!-- .row -->' : '');
 
-        if ($c->isEditMode() && $options['hideEditMode']) :
+
+            endforeach;
+
+
+
+            // carousels
+            if ($isCarousel) :
+            $slick = new StdClass();
+            $slick->slidesToShow = $options->galleryColumns;
+            $slick->slidesToScroll = $options->galleryColumns;
+            $slick->margin = $options->galleryGap ? 30 : 0;
+            $slick->dots = (bool)$o->carousel_dots;
+            $slick->arrows = (bool)$o->carousel_arrows;
+            $slick->infinite = (bool)$o->carousel_infinite;
+            $slick->speed = (int)$o->carousel_speed;
+            $slick->centerMode = (bool)$o->carousel_centerMode;
+            $slick->variableWidth = (bool)$o->carousel_variableWidth;
+            $slick->adaptiveHeight = (bool)$o->carousel_adaptiveHeight;
+            $slick->autoplay = (bool)$o->carousel_autoplay;
+            $slick->autoplaySpeed = (int)$o->carousel_autoplaySpeed;
+            $vars['slick'] = $slick;
+            endif;
+
+            /***** Block related ****/
+            $templateName = $b->getBlockFilename();
+            $blockTypeHandle = str_replace('_', '-', $b->getBlockTypeHandle());
+            $templateCleanName = str_replace('_', '-', substr(substr( $templateName, 0, strlen( $templateName ) -4 ),10)); // Retire le '.php' et 'supermint_'
+
+            // Wrapper classes
+            $wrapperClasses[] = 'mcl-' . $blockTypeHandle; // mcl-easy-gallery
+            $wrapperClasses[] =  $blockTypeHandle . '-' . $templateCleanName; //-> easy-gallery-portfolio
+            $wrapperClasses[] = $templateCleanName; // -> portfolio
+            if ($isCarousel) 	$wrapperClasses[] = 'slick-wrapper ';
+            if ($isMasonry) 	$wrapperClasses[] = 'masonry-wrapper';
+            $wrapperClasses[] = 'wrapper-'. $options->galleryColumns . '-column';
+            // $wrapperClasses[] = 'row';
+            $wrapperClasses[] = $vars['gap'];
+            // Wrapper attributes
+            $wrapperAtrtribute[] = 'data-bid="' . $b->getBlockID() . '"';
+            if ($isMasonry) $wrapperAtrtribute[] = 'data-gridsizer=".' . $vars['column_class'] . '"';
+            if ($isCarousel) $wrapperAtrtribute[] = 'data-slick=\'' . json_encode($slick) . '\'';
+            // Finally, wrapper html
+            $vars['wrapperOpenTag'] = '<' . $choice['wrapperTag'] . ' class="' . implode(' ', array_merge($wrapperClasses,$choice['additionalWrapperClasses'])) . '" ' . implode(' ', $wrapperAtrtribute) . '>';
+            $vars['wrapperCloseTag'] = '</' . $choice['wrapperTag'] . '><!-- end .' . $blockTypeHandle . '-' . $templateCleanName . ' -->';
+            // Item classes
+            if(!$isCarousel) $itemClasses[] = $vars['column_class'];
+            $itemClasses[] = 'item';
+            if ($isMasonry) $itemClasses[] = 'masonry-item';
+            // itemTag
+            $itemAttributes = array();
+            if($isCarousel) $itemAttributes[] = $options->galleryGap ? 'style="margin:0 15px"') : '';
+
+
+            $this->set('tagsObject', $tagsObject);
+
+            if ($c->isEditMode() && $choice['hideEditMode']) :
             echo '<div class="ccm-edit-mode-disabled-item">';
             echo '<p style="padding: 40px 0px 40px 0px;">' .
               '[ ' . $blockTypeHandle . ' ] ' .
@@ -244,13 +336,13 @@ class Controller extends BlockController
               ($isStaticGrid ? t(' static grid') : '') .
               '</strong>' .
               t(' with ') .
-              $styleObject->columns .
+              $options->galleryColumns .
               t(' columns and ') .
-              (!(in_array('no-gap',$styleObject->classesArray)) ? t(' regular Gap ') : t('no Gap ')) .
+              ($options->galleryGap ? t(' regular Gap ') : t('no Gap ')) .
               t(' disabled in edit mode.') .
               '</p>';
             echo '</div>';
-        endif;
+            endif;
 
     }
 

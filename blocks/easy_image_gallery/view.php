@@ -1,3 +1,13 @@
+<?php
+defined('C5_EXECUTE') or die("Access Denied.");
+$c = Page::getCurrentPage();
+extract ($controller->getGallery($b));
+if (!$c->isEditMode()) :
+  echo $wrapperOpenTag;
+  foreach ($files as $key => $file): extract($file->details);
+  	echo $itemOpenTag;?>
+
+
 <?php defined('C5_EXECUTE') or die("Access Denied.");
 if ($c->isEditMode()) : ?>
     <div class="ccm-edit-mode-disabled-item" style="width: <?php echo $width; ?>; height: <?php echo $height; ?>">
