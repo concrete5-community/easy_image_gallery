@@ -12,11 +12,11 @@ $options = $controller->getOptionsJson();
             </div>
             <div class="form-group">
                 <?php echo $form->label($view->field('galleryGap'), t('Display Gap')); ?>
-                <?php  echo $form->select($view->field('galleryGap'), array(0=>t('No'), 1=>t('Yes')), $options->galleryGap); ?>
+                <?php  echo $form->select($view->field('galleryGap'), array(0 => t('No'), 1 => t('Yes')), $options->galleryGap); ?>
             </div>
             <div class="form-group">
                 <?php echo $form->label($view->field('galleryType'), t('Type of Display')); ?>
-                <?php  echo $form->select($view->field('galleryType'), array(t('static') => 'static', t('Masonry') => 'masonry', t('Carousel') => 'carousel'), $options->galleryType); ?>
+                <?php  echo $form->select($view->field('galleryType'), array('static' => t('static') , 'masonry' => t('Masonry') ,'carousel' =>  t('Carousel')), $options->galleryType); ?>
             </div>
             <div class="form-group">
                 <?php echo $form->label($view->field('lightbox'), t('Lightbox')); ?>

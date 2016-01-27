@@ -1,15 +1,15 @@
 <?php defined('C5_EXECUTE') or die("Access Denied.")?>
-<script> 
+<script>
 try{Typekit.load();}catch(e){}
 $(document).ready(function(){
     var $win = $(window),
         $imgs = $("#easy-gallery-<?php echo $bID?> img"),
         $container = $("#easy-gallery-<?php echo $bID?>"),
-        masonryOptions = {columnWidth: '.grid-sizer'},
+        masonryOptions = {columnWidth: '.masonry-item'},
         // quick search regex
-        qsRegex = false; 
+        qsRegex = false;
         // If a div.gutter-sizer is present, we add it to the option, otherwise the plugin doesn't work
-        if ($("#easy-gallery-<?php echo $bID?> .gutter-sizer").size()) masonryOptions.gutter = '.gutter-sizer';
+        // if ($("#easy-gallery-<?php echo $bID?> .gutter-sizer").size()) masonryOptions.gutter = '.gutter-sizer';
 
         $container.imagesLoaded(function(){
             $isotope = $container.isotope({ masonry: masonryOptions,
@@ -41,7 +41,7 @@ $(document).ready(function(){
 
   // use value of search field to filter
     var $quicksearch = $('#quicksearch').keyup(debounce(searchFilter));
-      
+
     function searchFilter() {
         qsRegex = new RegExp($quicksearch.val(), 'gi');
         $container.isotope({
@@ -49,7 +49,7 @@ $(document).ready(function(){
                 return qsRegex ? $(this).text().match(qsRegex) : true;
             }
         });
-    }    
+    }
 
     // debounce so filtering doesn't happen every millisecond
     function debounce( fn, threshold ) {
@@ -67,6 +67,6 @@ $(document).ready(function(){
     }
 
 
-    $('#filter-set-<?php echo $bID?>').on('click', 'a', function(e) {e.preventDefault();var filterValue = $(this).attr('data-filter');$container.isotope({ filter: filterValue })});    
+    $('#filter-set-<?php echo $bID?>').on('click', 'a', function(e) {e.preventDefault();var filterValue = $(this).attr('data-filter');$container.isotope({ filter: filterValue })});
 });
 </script>

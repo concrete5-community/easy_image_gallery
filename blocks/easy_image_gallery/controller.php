@@ -10,7 +10,8 @@ use Concrete\Core\Asset\AssetList;
 use \Concrete\Core\Http\ResponseAssetGroup;
 use Permissions;
 use Page;
-
+use Core;
+use View;
 use File;
 use FileSet;
 use StdClass;
@@ -158,12 +159,13 @@ class Controller extends BlockController
 
     }
 
-    public function getGallery($b,$controller,$choice = array()) {
+    public function getGallery($b,$controller = null,$choice = array()) {
 
       if (!$controller) $controller = $this;
+      $view = View::getInstance();
 
       $choice = array_merge(array(
-                        'type' => 'tiny',
+                        'type' => 'file_manager_detail',
                         'wrapperTag' => 'div',
                         'itemTag' => 'div',
                         'AddInnerDiv' => true,
@@ -184,10 +186,10 @@ class Controller extends BlockController
         // Files
         $fIDs = $this->getFilesDetails(false,false);
         $files = array_filter(array_map(array($this,'getFileFromFileID') , $fIDs));
-        $this->set('fIDs', $fIDs);
-        $this->set('selectedFilesets', $this->getSelectedFilesets());
-        $this->set('files',$files );
-        $this->set('options', $options );
+        $vars['fIDs'] = $fIDs;
+        $vars['selectedFilesets'] = $this->getSelectedFilesets();
+        $vars['files'] = $files;
+        $vars['options'] = $options;
         // print_r($files); exit();
         $this->generatePlaceHolderFromArray($files);
 
@@ -203,6 +205,7 @@ class Controller extends BlockController
         $tagsObject = new stdClass();
         $tags = $tagsObject->fileTags = array();
         $ak = FileAttributeKey::getByHandle('image_tag');
+        $vars['tagsObject'] = $tagsObject;
 
         $db = Loader::db();
 
@@ -227,7 +230,7 @@ class Controller extends BlockController
         $itemClasses[] = 'item';
         if ($isMasonry) $itemClasses[] = 'masonry-item';
 
-        foreach ($files as $key => $file):
+        foreach ($files as $key => $file) :
             if(!is_object($file)) continue;
 
             // Now tags
@@ -257,24 +260,25 @@ class Controller extends BlockController
             // Other variables
             $file->details = array();
             $file->details['imageColumn'] = $file->getAttribute('gallery_columns') ? $file->getAttribute('gallery_columns') : $options->galleryColumns;
-            $file->details['placeHolderUrl'] = $this->getBlockURL() . "/images/placeholders/placeholder-{$file->getAttribute('width')}-{$file->getAttribute('height')}.png";
+            $file->details['placeHolderUrl'] = $controller->getBlockURL() . "/images/placeholders/placeholder-{$file->getAttribute('width')}-{$file->getAttribute('height')}.png";
             $file->details['retinaThumbnailUrl'] = $file->getThumbnailURL($type->getDoubledVersion());
-            $file->details['fullUrl'] = $view->controller->getImageLink($f,$options);
-            $tags = isset($tagsObject->fileTags[$f->getFileID()]) ? implode(' ',$tagsObject->fileTags[$f->getFileID()]) : '';
-
+            $file->details['fullUrl'] = $this->getImageLink($file,$options);
+            $tags = isset($tagsObject->fileTags[$file->getFileID()]) ? implode(' ',$tagsObject->fileTags[$file->getFileID()]) : '';
+            $file->details['to'] = 'href="' . $fullUrl . '"' . ($options->lightbox ? 'data-fancybox-group="easy-gallery-' . $b->getBlockID . '" data-image="' . $fullUrl . '"'  . ($options->lightboxTitle ? 'title="' . $file->getTitle() : '') . ($options->lightboxDescription ? $file->getDescription() : '') : '') . '"';
             // Item classes
             $itemClassesTemp = $itemClasses;
             $itemClassesTemp[] = $key % 2 == 1 ? 'pair' : 'impair';
             $itemClassesTemp[] = $tags;
 
-            $file->details['itemOpenTag'] = (($key%$options->gallery_columns == 0 && $isStaticGrid) ? '<div class="row' . ($options->galleryGap ? '' : ' no-gap') . '">' : '') . '<' . $choice['itemTag'] . ' class="' .implode(' ',  array_merge($itemClassesTemp,$choice['additionalItemClasses'])) . '" style="' . ($options->galleryGap && $isCarousel ? 'margin:0 15px;') . 'width:' . 100 / $options->galleryColumns . '%' . '"' . ' >' . ($choice['AddInnerDiv'] ? '<div class="inner">' : '');
-            $page->mclDetails['itemCloseTag'] = ($choice['AddInnerDiv'] ? '</div>' : '') . '</' . $choice['itemTag'] . '>' . (($key%$options->galleryColumns == ($options->galleryColumns) - 1 || ($key == count($files)-1)) && $isStaticGrid ? '</div><!-- .row -->' : '');
+            $file->details['itemOpenTag'] = (($key%$options->galleryColumns == 0 && $isStaticGrid) ? ('<div class="row' . ($options->galleryGap ? '' : ' no-gap') . '">') : '') .
+                                            '<' . $choice['itemTag'] . ' class="' .implode(' ',  array_merge($itemClassesTemp,$choice['additionalItemClasses'])) . '"' .
+                                            'style="' . ($options->galleryGap && $isCarousel ? 'margin:0 15px;' : '') . 'width:' . (100 / $options->galleryColumns) . '%' . '"' .
+                                            '>' . ($choice['AddInnerDiv'] ? '<div class="inner">' : '');
+            $file->details['itemCloseTag'] = ($choice['AddInnerDiv'] ? '</div>' : '') . '</' . $choice['itemTag'] . '>' . (($key%$options->galleryColumns == ($options->galleryColumns) - 1 || ($key == count($files)-1)) && $isStaticGrid ? '</div><!-- .row -->' : '');
 
 
-            endforeach;
-
-
-
+        endforeach;
+            $vars['files'] = $files;
             // carousels
             if ($isCarousel) :
             $slick = new StdClass();
@@ -304,6 +308,7 @@ class Controller extends BlockController
             $wrapperClasses[] = $templateCleanName; // -> portfolio
             if ($isCarousel) 	$wrapperClasses[] = 'slick-wrapper ';
             if ($isMasonry) 	$wrapperClasses[] = 'masonry-wrapper';
+            if($options->lightbox) $wrapperClasses[] = 'clickable';
             $wrapperClasses[] = 'wrapper-'. $options->galleryColumns . '-column';
             // $wrapperClasses[] = 'row';
             $wrapperClasses[] = $vars['gap'];
@@ -312,7 +317,7 @@ class Controller extends BlockController
             if ($isMasonry) $wrapperAtrtribute[] = 'data-gridsizer=".' . $vars['column_class'] . '"';
             if ($isCarousel) $wrapperAtrtribute[] = 'data-slick=\'' . json_encode($slick) . '\'';
             // Finally, wrapper html
-            $vars['wrapperOpenTag'] = '<' . $choice['wrapperTag'] . ' class="' . implode(' ', array_merge($wrapperClasses,$choice['additionalWrapperClasses'])) . '" ' . implode(' ', $wrapperAtrtribute) . '>';
+            $vars['wrapperOpenTag'] = '<' . $choice['wrapperTag'] . ' class="' . implode(' ', array_merge($wrapperClasses,$choice['additionalWrapperClasses'])) . '" ' . implode(' ', $wrapperAtrtribute) . ' id="easy-gallery-' . $b->getBlockID() . '">';
             $vars['wrapperCloseTag'] = '</' . $choice['wrapperTag'] . '><!-- end .' . $blockTypeHandle . '-' . $templateCleanName . ' -->';
             // Item classes
             if(!$isCarousel) $itemClasses[] = $vars['column_class'];
@@ -320,10 +325,8 @@ class Controller extends BlockController
             if ($isMasonry) $itemClasses[] = 'masonry-item';
             // itemTag
             $itemAttributes = array();
-            if($isCarousel) $itemAttributes[] = $options->galleryGap ? 'style="margin:0 15px"') : '';
+            if($isCarousel) $itemAttributes[] = $options->galleryGap ? 'style="margin:0 15px"' : '';
 
-
-            $this->set('tagsObject', $tagsObject);
 
             if ($c->isEditMode() && $choice['hideEditMode']) :
             echo '<div class="ccm-edit-mode-disabled-item">';
@@ -343,6 +346,10 @@ class Controller extends BlockController
               '</p>';
             echo '</div>';
             endif;
+
+      if ($isMasonry) Loader::PackageElement("view/sortable",'easy_image_gallery', array('options'=>$options,'tagsObject'=>$tagsObject,'bID'=>$b->getBlockID(),'styleObject'=>$styleObject));
+
+      return $vars;
 
     }
 
