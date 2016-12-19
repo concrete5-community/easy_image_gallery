@@ -262,7 +262,7 @@ class Controller extends BlockController
         $this->requireAsset('css','easy-gallery-edit');
     }
 
-    public function save($args)
+    public function save ($args)
     {
         $options = $args;
         unset($options['fID']);
@@ -271,7 +271,8 @@ class Controller extends BlockController
         // Vu que je n'arrive pas encore a sauver en ajax l'attribut cID du lien
         // (meme si dans le filemanager la fenetre attribut y arrive)
         // je boucle et sauve pour chaque fichier
-        // var_dump($args['fsIDs']);die();
+        // var_dump($args);die();
+
         if(is_array($args['internal_link_cid'])) :
           $ak = FileAttributeKey::getByHandle('internal_link_cid');
           if (is_object($ak)) :
@@ -279,7 +280,7 @@ class Controller extends BlockController
               $f = File::getByID($fID);
               if(is_object($f)) :
                 $fv = $f->getVersionToModify();
-                $ak->setAttribute($fv,$valueArray[0]);
+                $fv->setAttribute($ak,$valueArray[0]);
               endif;
             endforeach;
           endif;
