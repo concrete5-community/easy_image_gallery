@@ -1,3 +1,4 @@
+1.4	- Fix compatibility for 5.8
 1.3.1 - Fix multiple tags issue.
 1.3 	- Improvement of fileset management.
 				* Now fileset are always up to date with the fileset in file-manager
