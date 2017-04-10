@@ -147,7 +147,7 @@ class Controller extends BlockController
         endif;
     }
 
-    public function registerViewAssets()
+    public function registerViewAssets($outputContent = '')
     {
         $this->requireAsset('css','easy-gallery-view');
         $this->requireAsset('javascript', 'jquery');
