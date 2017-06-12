@@ -16,7 +16,7 @@ class Controller extends \Concrete\Core\Package\Package {
 
     protected $pkgHandle = 'easy_image_gallery';
     protected $appVersionRequired = '5.8';
-    protected $pkgVersion = '1.4';
+    protected $pkgVersion = '1.4.2';
     protected $pkg;
 
     public function getPackageDescription() {
