@@ -93,6 +93,7 @@
 /******** -- Columns -- ********/
 /*******************************/
 
+<<<<<<< HEAD
 .row.no-gap,
 .ccm-custom-style-container.no-gap .row {
   margin: 0;
@@ -129,3 +130,103 @@
    padding-left: 15px;
    padding-right: 15px;
  }
+=======
+
+/* -- Colapsed Columns -- */
+
+.e-col-2 {
+    width:50%;
+}
+.e-col-3 {
+    width:33.33333%;
+}
+.e-col-4 {
+    width:25%;
+}
+.e-col-6 {
+    width:16.666666%;
+}
+
+.e-col-2,
+.e-col-3,
+.e-col-4,
+.e-col-6 {
+    float: left;
+}
+
+
+/* -- separed columns -- */
+
+.b-col-2 {
+  width: 49%;
+}
+.b-col-2 .img {
+  height: 300px;
+}
+.b-col-3 {
+  width: 32%;
+}
+.b-col-3 .img {
+  height: 300px;
+}
+.b-col-4 {
+  width: 23.5%;
+}
+.b-col-4 .img {
+  height: 180px;
+}
+.b-col-6 {
+  width: 14.666666%;
+}
+.b-col-6 .img {
+  height: 120px;
+}
+
+.gutter {
+    margin-right: 2%
+}
+.easy-gallery .row {
+  padding: 0 15px; /*  Pour recupérer la marge ? */
+}
+/* -- masonry -- */
+.gutter-sizer {
+    width: 2%;
+}
+.grid-sizer {
+    margin: 0 !important;
+}
+
+
+.b-col-2,
+.b-col-3,
+.b-col-4,
+.b-col-6 {
+    float: left;
+}
+
+.row .b-col-2:first-child,
+.row .b-col-3:first-child,
+.row .b-col-4:first-child,
+.row .b-col-6:first-child {
+    /*margin-left: 15px;*/
+}
+.row .b-col-2:last-child,
+.row .b-col-3:last-child,
+.row .b-col-4:last-child,
+.row .b-col-6:last-child {
+    margin-right: 0;
+}
+
+.clear {clear: both;}
+
+@media (max-width: 768px){
+  .b-col-2,
+  .b-col-3,
+  .b-col-4,
+  .b-col-6 {
+      float: none;
+      width: 100%;
+      margin: 0;
+  }
+}
+>>>>>>> concrete8

@@ -19,7 +19,10 @@ $tp = new TaskPermission();
         <button id="options-button" type="button" class="btn btn-mini"><?php echo t("Options")?></button>
     </li>
     <li class="ccm-inline-toolbar-button ccm-inline-toolbar-button-options">
-        <button id="advanced-options-button" type="button" class="btn btn-mini"><?php echo t("Advanced Options")?></button>
+        <button id="advanced-options-button" type="button" class="btn btn-mini"><?php echo t("Adv Opt")?></button>
+    </li>
+    <li class="ccm-inline-toolbar-button ccm-inline-toolbar-button-sort">
+        <button id="sort-button" type="button" class="btn btn-mini"><?php echo t("Sort")?></button>
     </li>
     <li class="ccm-inline-toolbar-button ccm-inline-toolbar-button-cancel">
         <button onclick="cancelBlockForm()" id="" type="button" class="btn btn-mini"><?php echo t("Cancel")?></button>
@@ -62,6 +65,7 @@ $tp = new TaskPermission();
                 </div>
             </div>
             <input type="hidden" name="<?php echo $view->field('fID')?>[]" class="image-fID" value="<%=inputValue%>" />
+            <input type="hidden" name="<?php echo $view->field('uniqueFID')?>[]" class="unique-image-fID" value="<%=fID%>" />
             <% } else { %>
             <div class="add-file-control">
                 <a href="#" class="upload-file"><i class="fa fa-upload"></i></a><a href="#" class="add-file"><i class="fa fa-th-list"></i></a>
