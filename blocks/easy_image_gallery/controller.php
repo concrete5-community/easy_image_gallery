@@ -202,9 +202,7 @@ class Controller extends BlockController
         endif;
 
         // Tags
-        $tagsObject = new stdClass();
-        $tags = $tagsObject->fileTags = array();
-        $ak = FileAttributeKey::getByHandle('image_tag');
+        $tagsObject = $this->getFilesTags($files);
         $vars['tagsObject'] = $tagsObject;
 
         $db = Loader::db();
@@ -233,31 +231,7 @@ class Controller extends BlockController
         foreach ($files as $key => $file) :
             if(!is_object($file)) continue;
 
-            // Now tags
-
-            if ($file->getAttribute('image_tag')) :
-
-                $v = array($file->getFileID(), $file->getFileVersionID(), $ak->getAttributeKeyID());
-                $avID = $db->GetOne("SELECT avID FROM FileAttributeValues WHERE fID = ? AND fvID = ? AND akID = ?", $v);
-                if (!$avID) continue;
-
-                $query = $db->GetAll("
-                    SELECT opt.value
-                    FROM atSelectOptions opt,
-                    atSelectOptionsSelected sel
-
-                    WHERE sel.avID = ?
-                    AND sel.atSelectOptionID = opt.ID",$avID);
-
-
-                foreach($query as $opt) {
-                    $handle = preg_replace('/\s*/', '', strtolower($opt['value']));
-                    $tagsObject->fileTags[$file->getFileID()][] = $handle;
-                    $tagsObject->tags[$handle] = $opt['value'];
-                }
-            endif ;
-
-            // Other variables
+            // variables
             $file->details = array();
             $file->details['imageColumn'] = $file->getAttribute('gallery_columns') ? $file->getAttribute('gallery_columns') : $options->galleryColumns;
             $file->details['placeHolderUrl'] = $controller->getBlockURL() . "/images/placeholders/placeholder-{$file->getAttribute('width')}-{$file->getAttribute('height')}.png";
@@ -466,6 +440,27 @@ class Controller extends BlockController
       endif;
 
       return $fullUrl;
+    }
+
+    public function getFilesTags ($files) {
+      $tagsObject = new StdClass();
+      $tagsObject->tags = $tagsObject->fileTags = array();
+      $ak = FileAttributeKey::getByHandle('image_tag');
+      $db = Loader::db();
+
+      foreach ($files as $key => $file):
+      		if ($tags = $file->getAttribute('image_tag')) :
+      				foreach($tags->getSelectedOptions() as $value) :
+                  $result = $value->getSelectAttributeOptionDisplayValue();
+      						$handle = preg_replace('/\s*/', '', strtolower($result));
+
+      						$tagsObject->fileTags[$file->getFileID()][] =  $handle ;
+                  $tagsObject->fileTagsName[$file->getFileID()][] =  $result;
+      						$tagsObject->tags[$handle] = $result;
+      				endforeach;
+      		endif ;
+      endforeach;
+      return $tagsObject;
     }
 
     function hex2rgb($hex) {
