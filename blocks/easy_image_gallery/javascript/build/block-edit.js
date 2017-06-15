@@ -148,7 +148,7 @@
                 }
             });
             $('#sort-button').click(function(){
-              sortUsingNestedText($('.easy_image-items'), "div.image-item", "h4");
+              sortUsingNestedText($('.easy_image-items'), "div.block-to-sort", "h4");
             });
             if (file.link_type) displayLinkChooser($obj,file.link_type);
             // Faire en sorte que les infos restent visibles quand on edite le titre ou la description

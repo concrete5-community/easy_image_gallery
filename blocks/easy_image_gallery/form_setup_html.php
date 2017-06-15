@@ -41,7 +41,7 @@ $tp = new TaskPermission();
 </div>
 
 <script type="text/template" id="imageTemplate">
-    <div class="image-item <% if (image_url.length > 0) { %>filled fid-<%= fID %> <% } %> ccm-ui <%= classes %>" <% if (originType == 'fileset') { %>rel="<%=filesetName%>" <% } %>>
+    <div class="image-item block-to-sort <% if (image_url.length > 0) { %>filled fid-<%= fID %> <% } %> ccm-ui <%= classes %>" <% if (originType == 'fileset') { %>rel="<%=filesetName%>" <% } %>>
         <div id="manage-file" class="manage-file">
             <% if (image_url.length > 0) { %>
             <div class="img" style="background-image:url(<%= image_url %>)"></div>
@@ -67,8 +67,9 @@ $tp = new TaskPermission();
             <input type="hidden" name="<?php echo $view->field('fID')?>[]" class="image-fID" value="<%=inputValue%>" />
             <input type="hidden" name="<?php echo $view->field('uniqueFID')?>[]" class="unique-image-fID" value="<%=fID%>" />
             <% } else { %>
-            <div class="add-file-control">
+            <div class="add-file-control block-to-sort">
                 <a href="#" class="upload-file"><i class="fa fa-upload"></i></a><a href="#" class="add-file"><i class="fa fa-th-list"></i></a>
+                <h4 style="display:none">zzzz</h4>
             </div>
             <span class="process"><?php echo t('Processing') ?> <i class="fa fa-cog fa-spin"></i></span>
             <input type="text" class="knob" value="0" data-width="150" data-height="150" data-fgColor="#555" data-readOnly="1" data-bgColor="#e1e1e1" data-thickness=".1" />

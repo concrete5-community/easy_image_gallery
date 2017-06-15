@@ -303,10 +303,13 @@ class Controller extends BlockController
         endif;
 
         // Maintenant on sauve l'ordre des fichiers dans chaque set
-        foreach ($filesetIDAndFiles as $fsID => $arrayOffID):
-          $set = \Concrete\Core\File\Set\Set::getByID($fsID);
-          $set->updateFileSetDisplayOrder($arrayOffID);
-        endforeach;
+        if (is_array($filesetIDAndFiles)):
+          foreach ($filesetIDAndFiles as $fsID => $arrayOffID):
+            $set = \Concrete\Core\File\Set\Set::getByID($fsID);
+            $set->updateFileSetDisplayOrder($arrayOffID);
+          endforeach;
+        endif;
+
 
         if (!is_numeric($options['fancyOverlayAlpha']) || $options['fancyOverlayAlpha'] > 1 || $options['fancyOverlayAlpha'] < 0) $options['fancyOverlayAlpha'] = .9;
         $args['options'] = json_encode($options);
