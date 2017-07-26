@@ -243,8 +243,11 @@ div.image-item.fileset .img {
     padding: 2px 7px;
     font-size: 10px;
 }
-
-
+/* On fixe la hauteur des options du select2*/
+.select2-container.select2-container-multi {
+    height: 30px;
+    overflow: scroll;
+}
 /* -- ccm-ui -- */
 .ccm-ui .popover.top {
 z-index: 9999; /* To go up of the tool bar */
