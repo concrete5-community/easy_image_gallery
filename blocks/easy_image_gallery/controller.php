@@ -371,6 +371,7 @@ class Controller extends BlockController
             if(!is_object($f)) continue;
             $w = $f->getAttribute('width');
             $h = $f->getAttribute('height');
+            if (!$w) continue;
             $new_width = $placeholderMaxSize;
             $new_height = floor( $h * ( $placeholderMaxSize / $w ) );
 
