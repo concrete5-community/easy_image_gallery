@@ -1,5 +1,5 @@
 <?php defined('C5_EXECUTE') or die("Access Denied.")?>
-		<?php if (count($tagsObject->tags) && $options->filtering) : ?>
+		<?php if (!empty($tagsObject->tags) && $options->filtering) : ?>
 		<ul class="filter-set" data-filter="filter" id="filter-set-<?php echo $bID?>">
 		  <li><a href="#show-all" data-option-value="*" class="selected rounded"><?php echo t('show all')?></a></li>
 		  <?php foreach ($tagsObject->tags as $handle =>$tag): ?>
