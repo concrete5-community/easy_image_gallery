@@ -14,7 +14,7 @@ elseif (is_array($files) && count($files)) :
     <?php $this->inc('elements/sortable.php') ?>
     <div class="clear"></div>
     </div>
-    <div class="easy-gallery easy-gallery-boxes <?php if($options->lightbox) : ?>clickable<? endif?>" id="easy-gallery-<?php echo $bID?>" data-gutter="1">
+    <div class="easy-gallery easy-gallery-boxes <?php if($options->lightbox) : ?>clickable<?php endif?>" id="easy-gallery-<?php echo $bID?>" data-gutter="1">
         <div class="b-col-<?php echo $options->galleryColumns?> grid-sizer"></div>
         <div class="gutter-sizer"></div>
     <?php foreach ($files as $key => $f) :
