@@ -13,7 +13,7 @@ $type = \Concrete\Core\File\Image\Thumbnail\Type\Type::getByHandle('file_manager
     <?php $this->inc('elements/sortable.php') ?>
     <div class="clear"></div>
     </div>
-<div class="easy-gallery easy-gallery-masonry <?php if ($options->lightbox): ?>clickable<? endif?>" id="easy-gallery-<?php echo $bID?>">
+<div class="easy-gallery easy-gallery-masonry <?php if ($options->lightbox): ?>clickable<?php endif?>" id="easy-gallery-<?php echo $bID?>">
     <div class="e-col-<?php echo $options->galleryColumns?> grid-sizer"></div>
 <?php foreach ($files as $key => $f) :
     $galleryHasImage = true;
