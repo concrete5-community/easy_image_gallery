@@ -30,11 +30,13 @@ elseif (is_array($files) && count($files)) :
             <?php if($fullUrl) : ?><a href="<?php echo $fullUrl ?>" <?php if ($options->lightbox) : ?> data-fancybox-group="easy-gallery-<?php echo $bID?>" data-image="<?php echo $fullUrl ?>" <?php if($options->lightboxTitle) : ?> title="<?php echo $f->getTitle() ?><?php if($options->lightboxDescription) : ?> <?php echo $f->getDescription() ?><?php endif ?>"<?php endif ?> <?php endif ?>><?php endif ?>
                 <img src="<?php echo $placeHolderUrl ?>" data-original="<?php echo $retinaThumbnailUrl ?>" alt="<?php echo $f->getTitle() ?>">
             <?php if($fullUrl) : ?></a><?php endif ?>
+            <?php if($options->displayDate || $options->galleryTitle || $options->galleryDescription) : ?>
             <div class="info">
                 <?php if($options->displayDate) : ?><p class="date"><?php echo date($options->dateFormat,$f->getDateAdded()->getTimestamp() )?></p><?php endif ?>
                 <?php if($options->galleryTitle) : ?><p class="title"><?php echo $f->getTitle() ?></p><?php endif ?>
                 <?php if($options->galleryDescription) : ?><p><small><?php echo $f->getDescription() ?></small></p><?php endif ?>
             </div>
+            <?php endif ?>
         </div>
     <?php endforeach ?>
         <div class="clear" style="clear:both"></div>
