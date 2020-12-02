@@ -22,6 +22,7 @@ $(document).ready(function(){
 
     	    $win.on('scroll', function () {
     	        loadVisible($imgs, 'lazylazy');
+                $isotope.isotope('layout');
     	    });
 
     	    $imgs.lazyload({
