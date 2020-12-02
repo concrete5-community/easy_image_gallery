@@ -225,7 +225,7 @@
             // On regarde si on desactive ou pas le bouton submit
             // en comptant les carré rempli d'image
             var b = $('#easy_image_save');
-            if(!$('.image-item.filled').size()) {
+            if(!$('.image-item.filled').length) {
                 b.addClass('disabled');
             } else if (b.is('.disabled')) {
                 b.removeClass('disabled');
