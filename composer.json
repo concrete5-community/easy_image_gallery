@@ -1,0 +1,37 @@
+{
+    "name": "concrete5-community/easy_image_gallery",
+    "description": "A ConcreteCMS inline gallery",
+    "type": "concrete5-package",
+    "keywords": [
+        "concrete5",
+        "package",
+        "addon",
+        "gallery"
+    ],
+    "homepage": "https://github.com/concrete5-community/easy_image_gallery",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jacqmin Sébastien",
+            "email": "seb@tellthem.be",
+            "role": "original author"
+        },
+        {
+            "name": "Michele Locati",
+            "email": "michele@locati.it",
+            "role": "maintainer",
+            "homepage": "https://mlocati.github.io"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/concrete5-community/easy_image_gallery/issues",
+        "source": "https://github.com/concrete5-community/easy_image_gallery"
+    },
+    "require": {
+        "concrete5/core": "^8 || ^9"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}
