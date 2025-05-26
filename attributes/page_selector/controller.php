@@ -62,6 +62,7 @@ class Controller extends \Concrete\Core\Attribute\Controller  {
 		foreach($arr as $id) {
 			$db->Execute('delete from atPageSelector where avID = ?', array($id));
 		}
+		parent::deleteKey();
 	}
 
 	public function saveForm($data) {
