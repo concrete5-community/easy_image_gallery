@@ -15,8 +15,8 @@ use Concrete\Package\EasyImageGallery\Src\Helper\MclInstaller;
 class Controller extends \Concrete\Core\Package\Package {
 
     protected $pkgHandle = 'easy_image_gallery';
-    protected $appVersionRequired = '5.7.5.2';
-    protected $pkgVersion = '1.3.2';
+    protected $appVersionRequired = '5.8';
+    protected $pkgVersion = '1.4.2';
     protected $pkg;
 
     public function getPackageDescription() {

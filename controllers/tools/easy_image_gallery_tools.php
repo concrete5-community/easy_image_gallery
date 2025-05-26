@@ -34,7 +34,7 @@ class EasyImageGalleryTools extends RouteController
                 default:
                     $ak = FileAttributeKey::getByHandle($_REQUEST['name']);
                     if (is_object($ak)) :
-                      $ak->setAttribute($fv,$value);
+                      $fv->setAttribute($ak,$value);
                     endif;
                   break;
             }

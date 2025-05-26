@@ -9,7 +9,7 @@ $(document).ready(function(){
         // quick search regex
         qsRegex = false; 
         // If a div.gutter-sizer is present, we add it to the option, otherwise the plugin doesn't work
-        if ($("#easy-gallery-<?php echo $bID?> .gutter-sizer").size()) masonryOptions.gutter = '.gutter-sizer';
+        if ($("#easy-gallery-<?php echo $bID?> .gutter-sizer").length) masonryOptions.gutter = '.gutter-sizer';
 
         $container.imagesLoaded(function(){
             $isotope = $container.isotope({ masonry: masonryOptions,

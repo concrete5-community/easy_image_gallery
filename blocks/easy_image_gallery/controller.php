@@ -262,7 +262,7 @@ class Controller extends BlockController
         $this->requireAsset('css','easy-gallery-edit');
     }
 
-    public function save($args)
+    public function save ($args)
     {
         $options = $args;
         unset($options['fID']);
@@ -271,7 +271,7 @@ class Controller extends BlockController
         // Vu que je n'arrive pas encore a sauver en ajax l'attribut cID du lien
         // (meme si dans le filemanager la fenetre attribut y arrive)
         // je boucle et sauve pour chaque fichier
-        // var_dump($args['fsIDs']);die();
+
         if(is_array($args['internal_link_cid'])) :
           $ak = FileAttributeKey::getByHandle('internal_link_cid');
           if (is_object($ak)) :
@@ -279,7 +279,7 @@ class Controller extends BlockController
               $f = File::getByID($fID);
               if(is_object($f)) :
                 $fv = $f->getVersionToModify();
-                $ak->setAttribute($fv,$valueArray[0]);
+                $fv->setAttribute($ak,$valueArray[0]);
               endif;
             endforeach;
           endif;
@@ -290,13 +290,26 @@ class Controller extends BlockController
         if (is_array($args['fID'])):
           $args['fIDs'] = implode(',', array_unique($args['fID']));
           // Now extract Filset ID and save it in Options
-          foreach ($args['fID'] as $value) :
+          foreach ($args['fID'] as $k => $value) :
             if(strpos($value,'fsID') === 0 ):
-              $fsIDs[] = (int)substr($value,4);
+              $fsID = (int)substr($value,4);
+              //Le tableau des filesets
+              $fsIDs[] = $fsID;
+              // le meme tableau avec les ficheirs dans l'odre à l'intérieur (pour sauver l'ordre dans les fs)
+              $filesetIDAndFiles[$fsID][] = $args['uniqueFID'][$k];
             endif;
           endforeach;
           $options['fsIDs'] =  array_values(array_unique($fsIDs));
         endif;
+
+        // Maintenant on sauve l'ordre des fichiers dans chaque set
+        if (is_array($filesetIDAndFiles)):
+          foreach ($filesetIDAndFiles as $fsID => $arrayOffID):
+            $set = \Concrete\Core\File\Set\Set::getByID($fsID);
+            $set->updateFileSetDisplayOrder($arrayOffID);
+          endforeach;
+        endif;
+
 
         if (!is_numeric($options['fancyOverlayAlpha']) || $options['fancyOverlayAlpha'] > 1 || $options['fancyOverlayAlpha'] < 0) $options['fancyOverlayAlpha'] = .9;
         $args['options'] = json_encode($options);

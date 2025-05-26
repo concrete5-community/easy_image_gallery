@@ -147,6 +147,9 @@
                   };
                 }
             });
+            $('#sort-button').click(function(){
+              sortUsingNestedText($('.easy_image-items'), "div.block-to-sort", "h4");
+            });
             if (file.link_type) displayLinkChooser($obj,file.link_type);
             // Faire en sorte que les infos restent visibles quand on edite le titre ou la description
             $obj.find('.editable-click').on('shown', function (data) {
@@ -158,7 +161,14 @@
 
         }
 
-
+        function sortUsingNestedText(parent, childSelector, keySelector) {
+          var items = parent.children(childSelector).detach().sort(function(a, b) {
+              var vA = $(keySelector, a).text();
+              var vB = $(keySelector, b).text();
+              return (vA < vB) ? -1 : (vA > vB) ? 1 : 0;
+          });
+         parent.append(items);
+        }
 
         fillTemplate = function (file,$element) {
 
