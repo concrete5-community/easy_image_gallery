@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<concrete5-cif version="1.0">
+    <blocktypes>
+        <blocktype handle="easy_image_gallery" package="easy_image_gallery" />
+    </blocktypes>
+    <attributetypes>
+        <attributetype handle="page_selector" name="Page Selector" package="easy_image_gallery">
+            <categories>
+                <category handle="collection" />
+                <category handle="user" />
+                <category handle="file" />
+            </categories>
+        </attributetype>
+    </attributetypes>
+    <attributekeys>
+        <attributekey handle="image_tag" name="Image Tags" package="easy_image_gallery" searchable="1" indexed="1" type="select" category="file">
+            <type allow-multiple-values="1" display-order="display_asc" allow-other-values="1">
+                <options>
+                    <option value="Landscape" is-end-user-added="0" />
+                    <option value="Portrait" is-end-user-added="0" />
+                    <option value="Nature" is-end-user-added="0" />
+                </options>
+            </type>
+        </attributekey>
+        <attributekey handle="gallery_columns" name="Gallery Columns" package="easy_image_gallery" searchable="1" indexed="1" type="select" category="file">
+            <type allow-multiple-values="0" display-order="display_asc" allow-other-values="0">
+                <options>
+                    <option value="1" is-end-user-added="0" />
+                    <option value="2" is-end-user-added="0" />
+                    <option value="3" is-end-user-added="0" />
+                    <option value="4" is-end-user-added="0" />
+                    <option value="6" is-end-user-added="0" />
+                </options>
+            </type>
+        </attributekey>
+        <attributekey handle="internal_link_cid" name="Link to page" package="easy_image_gallery" searchable="1" indexed="1" type="page_selector" category="file" />
+        <attributekey handle="external_link_url" name="External Link URL" package="easy_image_gallery" searchable="1" indexed="1" type="text" category="file" />
+        <attributekey handle="link_type" name="Link Type" package="easy_image_gallery" searchable="1" indexed="1" type="select" category="file">
+            <type allow-multiple-values="0" display-order="display_asc" allow-other-values="0">
+                <options>
+                    <option value="None" is-end-user-added="0" />
+                    <option value="URL" is-end-user-added="0" />
+                    <option value="Page" is-end-user-added="0" />
+                </options>
+            </type>
+        </attributekey>
+    </attributekeys>
+    <attributesets>
+        <attributeset handle="easy_image_gallery" name="Easy Image Gallery" package="easy_image_gallery" locked="0" category="file">
+            <attributekey handle="image_tag" />
+            <attributekey handle="gallery_columns" />
+            <attributekey handle="internal_link_cid" />
+            <attributekey handle="external_link_url" />
+            <attributekey handle="link_type" />
+        </attributeset>
+    </attributesets>
+</concrete5-cif>
