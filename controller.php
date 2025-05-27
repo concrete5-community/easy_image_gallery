@@ -1,4 +1,5 @@
 <?php
+
 namespace Concrete\Package\EasyImageGallery;
 
 use Concrete\Core\Asset\Asset;
