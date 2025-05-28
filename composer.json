@@ -28,7 +28,7 @@
         "source": "https://github.com/concrete5-community/easy_image_gallery"
     },
     "require": {
-        "concrete5/core": "^8.5.2 || ^9"
+        "concrete5/core": "^8.5.2"
     },
     "config": {
         "optimize-autoloader": true,
