@@ -12,6 +12,7 @@ defined('C5_EXECUTE') or die('Access Denied.');
  * @var Concrete\Package\EasyImageGallery\Options $options
  * @var Concrete\Core\File\Set\Set[] $fileSets
  * @var array $fDetails
+ * @var int[] $fsIDs
  * @var bool $isComposer
  */
 
@@ -27,7 +28,7 @@ defined('C5_EXECUTE') or die('Access Denied.');
                 foreach ($fileSets as $fs) {
                     $fsID = (int) $fs->getFileSetID();
                     ?>
-                    <option value="<?= $fsID ?>" <?= in_array($fsID, $options->fsIDs, true) ? 'selected' : '' ?>><?= h($fs->getFileSetName()) ?></option>
+                    <option value="<?= $fsID ?>" <?= in_array($fsID, $fsIDs, true) ? 'selected' : '' ?>><?= h($fs->getFileSetName()) ?></option>
                     <?php
                 }
                 ?>
@@ -129,7 +130,7 @@ const _templateSlide = _.template($('#imageTemplate').html());
 
 const sliderEntriesContainer = $('.easy_image-items');
 
-let selectedFilesets = <?= json_encode($options->fsIDs) ?>;
+let selectedFilesets = <?= json_encode($fsIDs) ?>;
 
 let is_first_file = true;
 

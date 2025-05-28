@@ -545,6 +545,21 @@ class Controller extends BlockController implements FileTrackableInterface
         $this->set('options', $this->getOptions());
         $this->set('fileSets', $this->getFileSetList());
         $this->set('fDetails', $this->getFilesDetails());
+        $this->set('fsIDs', array_values(
+            array_unique(
+                array_filter(
+                    array_map(
+                        static function ($fID) {
+                            return preg_match('/^fsID[1-9]\d{0,18}$/', $fID) ? (int) substr($fID, strlen('fsID')) : 0;
+                        },
+                        explode(',', (string) $this->fIDs)
+                    ),
+                    static function ($fsID) {
+                        return $fsID > 0;
+                    }
+                )
+            )
+        ));
         $this->set('isComposer', false);
     }
 
