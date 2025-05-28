@@ -11,6 +11,7 @@ use Concrete\Core\File\EditResponse as FileEditResponse;
 use Concrete\Core\File\File;
 use Concrete\Core\File\Set\Set as FileSet;
 use Concrete\Core\File\Set\SetList as FileSetList;
+use Concrete\Core\File\Tracker\FileTrackableInterface;
 use Concrete\Core\Form\Service\Form;
 use Concrete\Core\Http\ResponseFactoryInterface;
 use Concrete\Core\Localization\Localization;
@@ -23,7 +24,7 @@ use Imagine\Image\Box;
 use Imagine\Image\ImagineInterface;
 use Imagine\Image\Palette;
 
-class Controller extends BlockController
+class Controller extends BlockController implements FileTrackableInterface
 {
     /**
      * {@inheritdoc}
@@ -144,6 +145,12 @@ class Controller extends BlockController
         $this->addOrEdit();
     }
 
+    public function composer()
+    {
+        $this->addOrEdit();
+        $this->set('isComposer', true);
+    }
+
     /**
      * @return \Symfony\Component\HttpFoundation\JsonResponse
      */
@@ -238,12 +245,6 @@ class Controller extends BlockController
         return $this->app->make(ResponseFactoryInterface::class)->json($details);
     }
 
-    public function composer()
-    {
-        $this->addOrEdit();
-        $this->set('isComposer', true);
-    }
-
     public function save($args)
     {
         $args = (is_array($args) ? $args : []) + [
@@ -314,7 +315,7 @@ class Controller extends BlockController
     {
         $options =  $this->getOptions();
         $files = [];
-        foreach ($this->getAllFileIDs(explode(',', (string) $this->fIDs)) as $fID) {
+        foreach ($this->getAllFileIDs() as $fID) {
             $file = File::getByID($fID);
             $fileVersion = $file ? $file->getApprovedVersion() : null;
             if (!$fileVersion) {
@@ -338,6 +339,26 @@ class Controller extends BlockController
         $this->set('tagsObject', $this->createTagsObject($files));
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @see \Concrete\Core\File\Tracker\FileTrackableInterface::getUsedCollection()
+     */
+    public function getUsedCollection()
+    {
+        return $this->getCollectionObject();
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @see \Concrete\Core\File\Tracker\FileTrackableInterface::getUsedFiles()
+     */
+    public function getUsedFiles()
+    {
+        return $this->getAllFileIDs();
+    }
+
     private function addOrEdit()
     {
         $this->setAssetEdit();
@@ -346,7 +367,7 @@ class Controller extends BlockController
         $this->set('colorWidget', $this->app->make('helper/form/color'));
         $this->set('options', $this->getOptions());
         $this->set('fileSets', $this->getFileSetList());
-        $this->set('fDetails', $this->getFilesDetails(explode(',', (string) $this->fIDs)));
+        $this->set('fDetails', $this->getFilesDetails());
         $this->set('isComposer', false);
     }
 
@@ -362,12 +383,11 @@ class Controller extends BlockController
     }
 
     /**
-     * @param int[]|string[] $fIDs
-     *
      * @return array
      */
-    private function expandFileIDs(array $fIDs)
+    private function getExpandFileIDs()
     {
+        $fIDs = explode(',', (string) $this->fIDs);
         if ($fIDs === []) {
             return [];
         }
@@ -400,19 +420,17 @@ class Controller extends BlockController
      *
      * @return int[]
      */
-    private function getAllFileIDs(array $fIDs)
+    private function getAllFileIDs()
     {
-        return array_map('intval', array_keys($this->expandFileIDs($fIDs)));
+        return array_map('intval', array_keys($this->getExpandFileIDs()));
     }
 
     /**
-     * @param int[]|string[] $fIDs
-     *
      * @return array
      */
-    private function getFilesDetails(array $fIDs)
+    private function getFilesDetails()
     {
-        $expandedIDs = $this->expandFileIDs($fIDs);
+        $expandedIDs = $this->getExpandFileIDs();
         if ($expandedIDs === []) {
             return [];
         }
