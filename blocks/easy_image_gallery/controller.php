@@ -6,20 +6,22 @@ defined('C5_EXECUTE') or die("Access Denied.");
 use Concrete\Core\Attribute\Category\FileCategory;
 use Concrete\Core\Block\BlockController;
 use Concrete\Core\Database\Connection\Connection;
+use Concrete\Core\Error\UserMessageException;
+use Concrete\Core\File\EditResponse as FileEditResponse;
 use Concrete\Core\File\File;
 use Concrete\Core\File\Set\Set as FileSet;
 use Concrete\Core\File\Set\SetList as FileSetList;
 use Concrete\Core\Form\Service\Form;
+use Concrete\Core\Http\ResponseFactoryInterface;
+use Concrete\Core\Localization\Localization;
 use Concrete\Core\Page\Page;
+use Concrete\Core\Permission\Checker;
 use Concrete\Core\Validation\CSRF\Token;
-use Concrete\Package\EasyImageGallery\Controller\Tools\EasyImageGalleryTools;
 use Concrete\Package\EasyImageGallery\Options;
 use Concrete\Package\EasyImageGallery\Tags;
 use Imagine\Image\Box;
 use Imagine\Image\ImagineInterface;
 use Imagine\Image\Palette;
-use Concrete\Core\Localization\Localization;
-use Concrete\Core\Permission\Checker;
 
 class Controller extends BlockController
 {
@@ -140,6 +142,100 @@ class Controller extends BlockController
     public function edit()
     {
         $this->addOrEdit();
+    }
+
+    /**
+     * @return \Symfony\Component\HttpFoundation\JsonResponse
+     */
+    public function action_saveField()
+    {
+        $token = $this->app->make(Token::class);
+        if (!$token->validate('eig_saveField')) {
+            throw new UserMessageException($token->getErrorMessage());
+        }
+        $fID = (int) $this->request->request->get('fID');
+        $file = $fID > 0 ? File::getByID($fID) : null;
+        if (!$file) {
+            throw new UserMessageException(t('File not found.'));
+        }
+        $fp = new Checker($file);
+        if (!$fp->canEditFileProperties()) {
+            throw new UserMessageException(t('Access Denied.'));
+        }
+        $fv = $file->getVersionToModify();
+        $name = $this->request->request->get('name');
+        $value = $this->request->request->get('value');
+        switch ($this->request->request->get('name')) {
+            case 'fvTitle':
+                $fv->updateTitle($value);
+                break;
+            case 'fvDescription':
+                $fv->updateDescription($value);
+                break;
+            case 'fvTags':
+                $fv->updateTags($value);
+                break;
+            default:
+                $category = $this->app->make(FileCategory::class);
+                $ak = $category->getAttributeKeyByHandle($name);
+                if ($ak) {
+                    $fv->setAttribute($ak, $value);
+                }
+                break;
+        }
+        $sr = new FileEditResponse();
+        $sr->setFile($file);
+        $sr->setMessage(t('File updated successfully.'));
+        $sr->setAdditionalDataAttribute('value', $value);
+        $sr->setAdditionalDataAttribute('name', $name);
+
+        return $this->app->make(ResponseFactoryInterface::class)->json($sr);
+    }
+
+    /**
+     * @return \Symfony\Component\HttpFoundation\JsonResponse
+     */
+    public function action_getFileSetImages()
+    {
+        $token = $this->app->make(Token::class);
+        if (!$token->validate('eig_getFileSetImages')) {
+            throw new UserMessageException($token->getErrorMessage());
+        }
+        $files = [];
+        $fsID = (int) $this->request->request->get('fsID');
+        $fs = $fsID > 0 ? FileSet::getByID($fsID) : null;
+        if ($fs) {
+            $fsf = $fs->getFiles();
+            if (!empty($fsf)) {
+                foreach (array_filter($fsf) as $f) {
+                    $fd = $this->getFileDetails($f, $fsID);
+                    if ($fd) {
+                        $files[] = $fd;
+                    }
+                }
+            }
+        }
+
+        return $this->app->make(ResponseFactoryInterface::class)->json($files);
+    }
+
+    /**
+     * @return \Symfony\Component\HttpFoundation\JsonResponse
+     */
+    public function action_getFileDetails()
+    {
+        $token = $this->app->make(Token::class);
+        if (!$token->validate('eig_getFileDetails')) {
+            throw new UserMessageException($token->getErrorMessage());
+        }
+        $fID = (int) $this->request->request->get('fID');
+        $file = $fID > 0 ? File::getByID($fID) : null;
+        if (!$file) {
+            throw new UserMessageException(t('Unable to find the file specified.'));
+        }
+        $details = $this->getFileDetails($file, $fID);
+
+        return $this->app->make(ResponseFactoryInterface::class)->json($details);
     }
 
     public function composer()
@@ -320,7 +416,6 @@ class Controller extends BlockController
         if ($expandedIDs === []) {
             return [];
         }
-        $tools = $this->app->make(EasyImageGalleryTools::class);
         $result = [];
         foreach ($expandedIDs as $fID => $type) {
             $f = File::getByID($fID);
@@ -332,7 +427,7 @@ class Controller extends BlockController
             } else {
                 $origin = 'file';
             }
-            if (($detail = $tools->getFileDetails($f, $origin)) !== null) {
+            if (($detail = $this->getFileDetails($f, $origin)) !== null) {
                 $result[] = $detail;
             }
         }
@@ -499,7 +594,7 @@ class Controller extends BlockController
         $filesetIDAndFiles = [];
         $m = null;
         foreach ($fIDs as $index => $fID) {
-            if (!preg_match('/^fsID([1-9][0-9]*)/$', (string) $fID, $m)) {
+            if (!preg_match('/^fsID([1-9][0-9]*)$/', (string) $fID, $m)) {
                 continue;
             }
             $fsID = (int) $m[1];
@@ -518,4 +613,43 @@ class Controller extends BlockController
             }
         }
     }
+
+    /**
+     * @param \Concrete\Core\Entity\File\File $file
+     * @param string|int $origin
+     *
+     * @return \stdClass|null
+     */
+    private function getFileDetails($file, $origin)
+    {
+        $checker = new Checker($file);
+        if (!$checker->canViewFile()) {
+            return null;
+        }
+        $fileVersion = $file ? $file->getVersionToModify() : null;
+        if (!$fileVersion) {
+            return null;
+        }
+        $to = $fileVersion->getTypeObject();
+        $o = $fileVersion->getJSONObject();
+        $o->generic_type = $to->getGenericType();
+        // Value fro the image link
+        $o->internal_link_cid = $fileVersion->getAttribute('internal_link_cid') ?: false;
+        $o->external_link_url = $fileVersion->getAttribute('external_link_url') ?: false;
+        $o->link_type = str_replace('<br/>', '', $fileVersion->getAttribute('link_type', 'display'));
+        $o->originType = 'file';
+        $o->fsID = false;
+        if (is_numeric($origin)) {
+            $origin = (int) $origin;
+            $fs = FileSet::getByID($origin);
+            if ($fs) {
+                $o->originType = 'fileset';
+                $o->fsID = $origin;
+                $o->filesetName = $fs->getFileSetName();
+            }
+        }
+
+        return $o;
+    }
+
 }
