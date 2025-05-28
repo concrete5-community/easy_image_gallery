@@ -86,18 +86,6 @@ class Controller extends Package
             $this
         );
         $al->register(
-            'javascript',
-            'easy-gallery-edit',
-            'blocks/easy_image_gallery/javascript/build/block-edit.js',
-            [
-                'version' => '1',
-                'position' => Asset::ASSET_POSITION_FOOTER,
-                'minify' => true,
-                'combine' => true,
-            ],
-            $this
-        );
-        $al->register(
             'css',
             'easy-gallery-edit',
             'blocks/easy_image_gallery/stylesheet/block-edit.css',
