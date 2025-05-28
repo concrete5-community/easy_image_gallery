@@ -5,7 +5,6 @@ namespace Concrete\Package\EasyImageGallery;
 use Concrete\Core\Asset\Asset;
 use Concrete\Core\Asset\AssetList;
 use Concrete\Core\Package\Package;
-use Concrete\Core\Routing\Router;
 
 defined('C5_EXECUTE') or die('Access Denied.');
 
@@ -66,7 +65,6 @@ class Controller extends Package
 
     public function on_start()
     {
-        $this->registerRoutes();
         $this->registerAssets();
     }
 
@@ -195,13 +193,5 @@ class Controller extends Package
             ],
             $this
         );
-    }
-
-    private function registerRoutes()
-    {
-        $router = $this->app->make(Router::class);
-        $router->register('/easyimagegallery/tools/savefield', Controller\Tools\EasyImageGalleryTools::class . '::save');
-        $router->register('/easyimagegallery/tools/getfilesetimages', Controller\Tools\EasyImageGalleryTools::class . '::getFileSetImage');
-        $router->register('/easyimagegallery/tools/getfiledetailsjson', Controller\Tools\EasyImageGalleryTools::class . '::getFileDetailsJson');
     }
 }

@@ -183,9 +183,12 @@ function attachUploadEvent($obj) {
         },
         done(e, data) {
             const target = data.newItem || $(e.target);
-            $.get(
-                <?= json_encode((string) URL::to('/easyimagegallery/tools/getfiledetailsjson')) ?>,
-                {fID: data.result[0].fID},
+            $.post(
+                <?= json_encode((string) $controller->getActionURL('getFileDetails')) ?>,
+                {
+                    <?= json_encode($token::DEFAULT_TOKEN_NAME) ?>: <?= json_encode($token->generate('eig_getFileDetails')) ?>,
+                    fID: data.result[0].fID,
+                },
                 function(file) {
                     fillTemplate(file,target);
                 },
@@ -231,9 +234,12 @@ function attachFileManagerLaunch($obj) {
     $obj.find('.add-file').click(function(event) {
         event.preventDefault();
         ConcreteFileManager.launchDialog(function (data) {
-            $.get(
-                <?= json_encode((string) URL::to('/easyimagegallery/tools/getfiledetailsjson')) ?>,
-                {fID: data.fID},
+            $.post(
+                <?= json_encode((string) $controller->getActionURL('getFileDetails')) ?>,
+                {
+                    <?= json_encode($token::DEFAULT_TOKEN_NAME) ?>: <?= json_encode($token->generate('eig_getFileDetails')) ?>,
+                    fID: data.fID,
+                },
                 function (file) {
                     if (file.generic_type == '1') {
                         $.fn.dialog.hideLoader();
@@ -256,8 +262,11 @@ function initImageEdit($obj, file) {
         ajaxOptions: {dataType: 'json'},
         emptytext: <?= json_encode(t('None')) ?>,
         showbuttons: true,
-        url: <?= json_encode((string) URL::to('/easyimagegallery/tools/savefield')) ?>,
-        params: {fID: file.fID},
+        url: <?= json_encode((string) $controller->getActionURL('saveField')) ?>,
+        params: {
+            <?= json_encode($token::DEFAULT_TOKEN_NAME) ?>: <?= json_encode($token->generate('eig_saveField')) ?>,
+            fID: file.fID,
+        },
         pk: '_x',
         success(data) {
             const container = $(this).closest('.image-item');
@@ -365,9 +374,12 @@ function addFileset(fsID) {
     selectedFilesets = selectedFilesets.filter(function(itm, i, a) {
         return i == a.indexOf(itm);
     });
-    $.get(
-        <?= json_encode((string) URL::to('/easyimagegallery/tools/getfilesetimages')) ?>,
-        {fsID: fsID},
+    $.post(
+        <?= json_encode((string) $controller->getActionURL('getFileSetImages')) ?>,
+        {
+            <?= json_encode($token::DEFAULT_TOKEN_NAME) ?>: <?= json_encode($token->generate('eig_getFileSetImages')) ?>,
+            fsID: fsID,
+        },
         function(data) {
             if(data.length) {
                 $.each(data,function(i,f){
