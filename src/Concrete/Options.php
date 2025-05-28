@@ -155,6 +155,17 @@ final class Options
     }
 
     /**
+     * @return string
+     */
+    public function export()
+    {
+        $data = (array) $this;
+        unset($data['fsIDs']);
+
+        return json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
      * @param string $field
      * @param string $default
      */
