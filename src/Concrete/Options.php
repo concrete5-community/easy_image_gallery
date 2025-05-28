@@ -10,11 +10,6 @@ defined('C5_EXECUTE') or die('Access Denied.');
 final class Options
 {
     /**
-     * @var int[]
-     */
-    public $fsIDs = [];
-
-    /**
      * @var string
      */
     public $lightbox;
@@ -91,14 +86,6 @@ final class Options
 
     private function __construct(array $data)
     {
-        if (isset($data['fsIDs']) && is_array($data['fsIDs'])) {
-            foreach ($data['fsIDs'] as $id) {
-                $id = (int) $id;
-                if ($id > 0 && !in_array($id, $this->fsIDs, true)) {
-                    $this->fsIDs[] = $id;
-                }
-            }
-        }
         $this->setString($data, 'lightbox', 'lightbox');
         $this->setBool($data, 'preloadImages', false);
         $this->setBool($data, 'textFiltering', false);
@@ -133,16 +120,6 @@ final class Options
      */
     public static function fromUI(array $data)
     {
-        $fsIDs = [];
-        if (isset($data['fID']) && is_array($data['fID'])) {
-            foreach ($data['fID'] as $fID) {
-                if (strpos($fID, 'fsID') === 0) {
-                    $fsIDs[] = substr($fID, 4);
-                }
-            }
-        }
-        $data['fsIDs'] = $fsIDs;
-
         return new self($data);
     }
 
@@ -160,7 +137,6 @@ final class Options
     public function export()
     {
         $data = (array) $this;
-        unset($data['fsIDs']);
 
         return json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }

@@ -12,6 +12,7 @@ defined('C5_EXECUTE') or die('Access Denied.');
  * @var Concrete\Package\EasyImageGallery\Options $options
  * @var Concrete\Core\File\Set\Set[] $fileSets
  * @var array $fDetails
+ * @var int[] $fsIDs
  * @var bool $isComposer
  */
 
