@@ -21,7 +21,7 @@ defined('C5_EXECUTE') or die('Access Denied.');
     <?php
         if ($fileSets !== []) {
             ?>
-            <label for="fsID"><?= t('Add a Filset:') ?></label>
+            <label for="fsID"><?= t('Add a File Set') ?>:</label>
             <select name="fsID" multiple id="fsID" style="width:300px" data-placeholder="<?= t('Choose') ?>">
                 <?php
                 foreach ($fileSets as $fs) {
@@ -35,7 +35,7 @@ defined('C5_EXECUTE') or die('Access Denied.');
             <?php
         } else {
             ?>
-            <label for="fsID"><?= t('No Filset') ?></label>
+            <label for="fsID"><?= t('No File Set') ?></label>
             <?php
         }
         ?>
