@@ -73,7 +73,7 @@
     -webkit-box-sizing: content-box;
 }
 
-/* 
+/*
     User Style:
     Change the following styles to modify the appearance of Colorbox.  They are
     ordered & tabbed in a way that represents the nesting of the generated HTML.
@@ -153,7 +153,7 @@
     background: #fff url(../images/loading.gif) no-repeat 5px 5px;
 }
 
-        /* these elements are buttons, and may need to have additional styles reset to avoid unwanted base styles */
+/* these elements are buttons, and may need to have additional styles reset to avoid unwanted base styles */
 #cboxPrevious, #cboxNext, #cboxSlideshow, #cboxClose {
     border: 0;
     padding: 0;
@@ -162,8 +162,8 @@
     width: auto;
     background: none;
 }
-        
-        /* avoid outlines on :active (mouseclick), but preserve outlines on :focus (tabbed navigating) */
+
+/* avoid outlines on :active (mouseclick), but preserve outlines on :focus (tabbed navigating) */
 #cboxPrevious:active, #cboxNext:active, #cboxSlideshow:active, #cboxClose:active {
     outline: 0;
 }

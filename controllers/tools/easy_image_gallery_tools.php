@@ -95,6 +95,8 @@ class EasyImageGalleryTools extends RouteController
     /**
      * @param \Concrete\Core\Entity\File\File|null $f
      * @param string|int $origin
+     *
+     * @return \stdClass|null
      */
     public function getFileDetails($f = null, $origin = 'file')
     {
@@ -104,7 +106,7 @@ class EasyImageGalleryTools extends RouteController
         }
         $fv = $f ? $f->getVersionToModify() : null;
         if (!$fv) {
-            return false;
+            return null;
         }
         $to = $fv->getTypeObject();
         $o = $fv->getJSONObject();
