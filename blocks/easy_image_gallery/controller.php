@@ -4,6 +4,7 @@ namespace Concrete\Package\EasyImageGallery\Block\EasyImageGallery;
 defined('C5_EXECUTE') or die("Access Denied.");
 
 use Concrete\Core\Attribute\Category\FileCategory;
+use Concrete\Core\Backup\ContentExporter;
 use Concrete\Core\Block\BlockController;
 use Concrete\Core\Database\Connection\Connection;
 use Concrete\Core\Error\UserMessageException;
@@ -17,12 +18,14 @@ use Concrete\Core\Http\ResponseFactoryInterface;
 use Concrete\Core\Localization\Localization;
 use Concrete\Core\Page\Page;
 use Concrete\Core\Permission\Checker;
+use Concrete\Core\Utility\Service\Xml;
 use Concrete\Core\Validation\CSRF\Token;
 use Concrete\Package\EasyImageGallery\Options;
 use Concrete\Package\EasyImageGallery\Tags;
 use Imagine\Image\Box;
 use Imagine\Image\ImagineInterface;
 use Imagine\Image\Palette;
+use SimpleXMLElement;
 
 class Controller extends BlockController implements FileTrackableInterface
 {
@@ -357,6 +360,180 @@ class Controller extends BlockController implements FileTrackableInterface
     public function getUsedFiles()
     {
         return $this->getAllFileIDs();
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @see \Concrete\Core\Block\BlockController::export()
+     */
+    public function export(SimpleXMLElement $blockNode)
+    {
+        $xmlService = $this->app->make(Xml::class);
+        $dataNode = $blockNode->addChild('data');
+        $match = null;
+        foreach (explode(',', (string) $this->fIDs) as $fID) {
+            if (!preg_match('/^(?<type>[^0-9]*)(?<id>[1-9]\d{0,18})$/', $fID, $match)) {
+                continue;
+            }
+            $id = (int) $match['id'];
+            switch ($match['type']) {
+                case 'fsID':
+                    $fileSet = FileSet::getByID($id);
+                    if ($fileSet) {
+                        $fileSetNode = $dataNode->addChild('fileset');
+                        $fileSetNode->addAttribute('name', $fileSet->getFileSetName());
+                        foreach (array_filter($fileSet->getFiles()) as $file) {
+                            $fileSetNode->addChild('file', ContentExporter::replaceFileWithPlaceHolder($file->getFileID()));
+                        }
+                    }
+                    break;
+                case '':
+                    $exportFile = ContentExporter::replaceFileWithPlaceHolder($fID);
+                    if ($exportFile) {
+                        $dataNode->addChild('file', $exportFile);
+                    }
+                    break;
+            }
+        }
+        $attributeKeys = [];
+        $category = $this->app->make(FileCategory::class);
+        foreach ([
+            'gallery_columns',
+            'link_type',
+            'internal_link_cid',
+            'external_link_url',
+            'image_tag',
+        ] as $akHandle) {
+            $attributeKey = $category->getAttributeKeyByHandle($akHandle);
+            if ($attributeKey) {
+                $attributeKeys[] = $attributeKey;
+            }
+        }
+        foreach (array_unique($this->getAllFileIDs()) as $fID) {
+            $file = File::getByID($fID);
+            $fileVersion = $file ? $file->getApprovedVersion() : null;
+            if (!$fileVersion) {
+                continue;
+            }
+            $fileAttributesNode = $dataNode->addChild('fileAttributes');
+            $fileAttributesNode->addAttribute('file', ContentExporter::replaceFileWithPlaceHolder($fID));
+            $fileAttributesNode->addAttribute('title', (string) $fileVersion->getTitle());
+            $fileAttributesNode->addAttribute('description', (string) $fileVersion->getDescription());
+            foreach (preg_split('/[\r\n]+/', (string) $fileVersion->getTags(), -1, PREG_SPLIT_NO_EMPTY) as $tag) {
+                $xmlService->createCDataNode($fileAttributesNode, 'tag', $tag);
+            }
+            foreach ($attributeKeys as $attributeKey) {
+                $attributeValue = $fileVersion->getAttributeValueObject($attributeKey);
+                if (!$attributeValue) {
+                    continue;
+                }
+                $attributeNode = $fileAttributesNode->addChild('attribute');
+                $attributeNode->addAttribute('handle', $attributeKey->getAttributeKeyHandle());
+                $attributeValue->getController()->exportValue($attributeNode);
+            }
+        }
+        $xmlService->createCDataNode($dataNode, 'options', $this->getOptions()->export());
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @see \Concrete\Core\Block\BlockController::getImportData()
+     */
+    protected function getImportData($blockNode, $page)
+    {
+        $category = $this->app->make(FileCategory::class);
+        $dataNode = isset($blockNode->data) ? $blockNode->data : null;
+        $optionsJSON = isset($dataNode->options) ? (string) $dataNode->options : null;
+        $options = Options::fromJson($optionsJSON);
+        $fIDs = [];
+        if ($dataNode !== null) {
+            $inspector = $this->app->make('import/value_inspector');
+            foreach ($dataNode->children() as $node) {
+                $nodeName = $node->getName();
+                switch ($nodeName) {
+                    case 'fileset':
+                        $fileSetName = isset($node['name']) ? (string) $node['name'] : '';
+                        if ($fileSetName !== '') {
+                            $fileSet = FileSet::getByName($fileSetName);
+                            if ($fileSet) {
+                                $fileSetFiles = array_filter($fileSet->getFiles());
+                            } else {
+                                $fileSet = FileSet::create($fileSetName);
+                                $fileSetFiles = [];
+                            }
+                        }
+                        $fIDs[] = 'fsID' . $fileSet->getFileSetID();
+                        if (isset($node->file)) {
+                            foreach ($node->file as $fileNode) {
+                                $fileID = (int) $inspector->inspect((string) $fileNode)->getReplacedValue();
+                                if ($fileID < 1) {
+                                    continue;
+                                }
+                                foreach ($fileSetFiles as $existingFile) {
+                                    if ($fileID === (int) $existingFile->getFileID()) {
+                                        continue 2;
+                                    }
+                                }
+                                $fileSet->addFileToSet($fileID);
+                            }
+                        }
+                        break;
+                    case 'file':
+                        $fileID = (int) $inspector->inspect((string) $node)->getReplacedValue();
+                        if ($fileID > 0) {
+                            $fIDs[] = $fileID;
+                        }
+                        break;
+                    case 'fileAttributes':
+                        $fileID = isset($node['file']) ? (int) $inspector->inspect((string) $node['file'])->getReplacedValue() : 0;
+                        $file = $fileID > 0 ? File::getByID($fileID) : null;
+                        $fileVersion = $file ? $file->getApprovedVersion() : null;
+                        if ($fileVersion) {
+                            $title = isset($node['title']) ? (string) $node['title'] : '';
+                            if ($title !== '' && $title !== $fileVersion->getTitle()) {
+                                $fileVersion->updateTitle($title);
+                            }
+                            $description = isset($node['description']) ? (string) $node['description'] : '';
+                            if ($description !== '' && $description !== $fileVersion->getDescription()) {
+                                $fileVersion->updateDescription($description);
+                            }
+                            $tags = [];
+                            if (isset($node->tag)) {
+                                foreach ($node->tag as $tagNode) {
+                                    if (($tag = (string) $tagNode) !== '') {
+                                        $tags[] = $tag;
+                                    }
+                                }
+                            }
+                            if ($tags !== []) {
+                                $fileVersion->updateTags(implode("\n", $tags));
+                            }
+                            if (isset($node->attribute)) {
+                                foreach ($node->attribute as $attributeNode) {
+                                    $akHandle = isset($attributeNode['handle']) ? (string) $attributeNode['handle'] : '';
+                                    $attributeKey = $akHandle === '' ? null : $category->getAttributeKeyByHandle($akHandle);
+                                    if (!$attributeKey) {
+                                        continue;
+                                    }
+                                    $attributeValue = $attributeKey->getController()->importValue($attributeNode);
+                                    if ($attributeValue) {
+                                        $fileVersion->setAttribute($attributeKey, $attributeValue);
+                                    }
+                                }
+                            }
+                            
+                        }
+                        break;
+                }
+            }
+        }
+
+        return [
+            'fIDs' => implode(',', $fIDs),
+            'options' => $options,
+        ];
     }
 
     private function addOrEdit()
