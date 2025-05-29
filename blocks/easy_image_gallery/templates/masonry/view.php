@@ -44,7 +44,7 @@ $type = ThumbnailType::getByHandle('file_manager_detail');
     <?php
     foreach ($files as $file) {
         $fileVersion = $file->getApprovedVersion();
-        $placeHolderUrl = $view->getBlockURL() . "/images/placeholders/placeholder-{$fileVersion->getAttribute('width')}-{$fileVersion->getAttribute('height')}.png";
+        $placeHolderUrl = $controller->getPlaceholderUrl($fileVersion);
         $imageColumn = ((int) $fileVersion->getAttribute('gallery_columns')) ?: $options->galleryColumns;
         $retinaThumbnailUrl = $type ? $fileVersion->getThumbnailURL($type->getDoubledVersion()) : '';
         $fullUrl = $controller->getImageLink($file, $options);

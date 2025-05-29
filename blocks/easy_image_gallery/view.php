@@ -43,7 +43,7 @@ $type = ThumbnailType::getByHandle('file_manager_detail');
     foreach ($files as $file) {
         $fileVersion = $file->getApprovedVersion();
         $imageColumn = ((int) $fileVersion->getAttribute('gallery_columns')) ?: $options->galleryColumns;
-        $placeHolderUrl = $view->getBlockURL() . "/images/placeholders/placeholder-{$fileVersion->getAttribute('width')}-{$fileVersion->getAttribute('height')}.png";
+        $placeHolderUrl = $controller->getPlaceholderUrl($fileVersion);
         $retinaThumbnailUrl = $type ? $fileVersion->getThumbnailURL($type->getDoubledVersion()) : '';
         $fullUrl = $controller->getImageLink($file, $options);
         $tags = isset($tagsObject->fileTags[$file->getFileID()]) ? implode(' ', $tagsObject->fileTags[$file->getFileID()]) : '';

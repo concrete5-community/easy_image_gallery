@@ -9,6 +9,7 @@ use Concrete\Core\Attribute\Category\FileCategory;
 use Concrete\Core\Backup\ContentExporter;
 use Concrete\Core\Block\BlockController;
 use Concrete\Core\Database\Connection\Connection;
+use Concrete\Core\Entity\File\Version as FileVersion;
 use Concrete\Core\Error\UserMessageException;
 use Concrete\Core\File\EditResponse as FileEditResponse;
 use Concrete\Core\File\File;
@@ -25,9 +26,6 @@ use Concrete\Core\Utility\Service\Xml;
 use Concrete\Core\Validation\CSRF\Token;
 use Concrete\Package\EasyImageGallery\Options;
 use Concrete\Package\EasyImageGallery\Tags;
-use Imagine\Image\Box;
-use Imagine\Image\ImagineInterface;
-use Imagine\Image\Palette;
 use SimpleXMLElement;
 
 class Controller extends BlockController implements FileTrackableInterface
@@ -359,7 +357,6 @@ class Controller extends BlockController implements FileTrackableInterface
             }
             $files[] = $file;
         }
-        $this->generatePlaceHolders($files);
         $page = Page::getCurrentPage();
         $editMode = $page && !$page->isError() && $page->isEditMode();
         $this->set('editMode', $editMode);
@@ -753,39 +750,27 @@ class Controller extends BlockController implements FileTrackableInterface
     }
 
     /**
-     * @param \Concrete\Core\Entity\File\File[] $files
+     * @return string
      */
-    private function generatePlaceHolders(array $files)
+    public function getPlaceholderUrl(FileVersion $fileVersion)
     {
-        if ($files === []) {
-            return;
-        }
-        $imagine = $this->app->make(ImagineInterface::class);
         $placeholderMaxSize = 600;
-        $palette = new Palette\RGB();
-        $backgroundColor = $palette->color([0, 0, 0], 87);
-        foreach ($files as $file) {
-            $fileVersion = $file->getApprovedVersion();
-            if (!$fileVersion) {
-                continue;
-            }
-            if (($fileWidth = (int) $fileVersion->getAttribute('width')) <= 0) {
-                continue;
-            }
-            if (($fileHeight = (int) $fileVersion->getAttribute('height')) <= 0) {
-                continue;
-            }
-            $newWidth = $placeholderMaxSize;
-            $newHeight = floor($fileHeight * $placeholderMaxSize / $fileWidth);
-            $placeholderFile =  __DIR__ . "/images/placeholders/placeholder-{$fileWidth}-{$fileHeight}.png";
-            if (file_exists($placeholderFile)) {
-                continue;
-            }
-            $imagine
-                ->create(new Box($newWidth, $newHeight), $backgroundColor)
-                ->save($placeholderFile)
-            ;
+        $fileWidth = (int) $fileVersion->getAttribute('width');
+        $fileHeight = (int) $fileVersion->getAttribute('height');
+        $placeholderWidth = $placeholderMaxSize;
+        if ($fileWidth < 1 || $fileHeight < 1) {
+            $placeholderHeight = $placeholderWidth;
+        } else {
+            $placeholderHeight = floor($fileHeight * $placeholderMaxSize / $fileWidth);
         }
+        $svg = <<<EOT
+<svg xmlns="http://www.w3.org/2000/svg" width="{$placeholderWidth}" height="{$placeholderHeight}">
+  <rect width="{$placeholderWidth}" height="{$placeholderHeight}" fill="black" fill-opacity="0.13" />
+</svg>
+EOT
+        ;
+
+        return 'data:image/svg+xml;utf8,' . rawurlencode(preg_replace('/[\r\n]/', '', $svg));
     }
 
     /**
