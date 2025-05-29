@@ -16,13 +16,19 @@ defined('C5_EXECUTE') or die('Access Denied.');
  * @var bool $isComposer
  */
 
+$enableFileUpload = version_compare(APP_VERSION, '9') < 0;
+
 ?>
 <ul class="ccm-inline-toolbar ccm-ui easy-image-toolbar">
     <li class="ccm-sub-toolbar-text-cell">
     <?php
         if ($fileSets !== []) {
+            if (version_compare(APP_VERSION, '9') < 0) {
+                ?>
+                <label for="fsID"><?= t('Add a File Set') ?>:</label>
+                <?php
+            }
             ?>
-            <label for="fsID"><?= t('Add a File Set') ?>:</label>
             <select name="fsID" multiple id="fsID" style="width:300px" data-placeholder="<?= t('Choose') ?>">
                 <?php
                 foreach ($fileSets as $fs) {
@@ -36,7 +42,7 @@ defined('C5_EXECUTE') or die('Access Denied.');
             <?php
         } else {
             ?>
-            <label for="fsID"><?= t('No File Set') ?></label>
+            <label><?= t('No File Set') ?></label>
             <?php
         }
         ?>
@@ -103,12 +109,25 @@ defined('C5_EXECUTE') or die('Access Denied.');
                 <input type="hidden" name="<?= $view->field('uniqueFID') ?>[]" class="unique-image-fID" value="<%=fID%>" />
             <% } else { %>
                 <div class="add-file-control block-to-sort">
-                    <a href="#" class="upload-file"><i class="fa fa-upload"></i></a><a href="#" class="add-file"><i class="fa fa-th-list"></i></a>
+                    <?php
+                    if ($enableFileUpload) {
+                        ?>
+                        <a href="#" class="upload-file"><i class="fa fa-upload"></i></a>
+                        <?php
+                    }
+                    ?>
+                    <a href="#" class="add-file"><i class="fa fa-th-list"></i></a>
                     <h4 style="display:none">zzzz</h4>
                 </div>
-                <span class="process"><?= t('Processing') ?> <i class="fa fa-cog fa-spin"></i></span>
-                <input type="text" class="knob" value="0" data-width="150" data-height="150" data-fgColor="#555" data-readOnly="1" data-bgColor="#e1e1e1" data-thickness=".1" />
-                <input type="file" name="files[]" class="browse-file" multiple />
+                <?php
+                if ($enableFileUpload) {
+                    ?>
+                    <span class="process"><?= t('Processing') ?> <i class="fa fa-cog fa-spin"></i></span>
+                    <input type="text" class="knob" value="0" data-width="150" data-height="150" data-fgColor="#555" data-readOnly="1" data-bgColor="#e1e1e1" data-thickness=".1" />
+                    <input type="file" name="files[]" class="browse-file" multiple />
+                    <?php
+                }
+                ?>
             <% } %>
         </div>
     </div>
@@ -143,84 +162,90 @@ function sortUsingNestedText(parent, childSelector, keySelector) {
     parent.append(items);
 }
 
-function attachUploadEvent($obj) {
-    $obj.fileupload({
-        url: CCM_DISPATCHER_FILENAME + '/ccm/system/file/upload',
-        dataType: 'json',
-        formData: {ccm_token: CCM_SECURITY_TOKEN},
-        add(e, data) {
-            const uploadFile = data.files[0];
-            if (!(/\.(gif|jpg|jpeg|tiff|png)$/i).test(uploadFile.name)) {
-                window.alert(<?= json_encode(t('You must select an image file only')) ?>);
-                return;
-            }
-            if (uploadFile.size > 6000000) {
-                window.alert(<?= json_encode(t('Please upload a smaller image, max size is 6 MB')) ?>);
-                return;
-            }
-            data.submit();
-        },
-        send(e, data) {
-            if (is_first_file) {
-                initUploadActionOnItem($(e.target));
-                is_first_file = false;
-            } else {
-                data.newItem = fillTemplate();
-                initUploadActionOnItem(data.newItem);
-            }
-        },
-        progress(e, data) {
-            const progress = parseInt(data.loaded / data.total * 100, 10);
-            const target = data.newItem || $(e.target);
-            if (progress < 95) {
-                target.find('.knob').val(progress).change();
-            } else {
-                target.find('.knob').val(100).change();
-                if(!target.find('canvas').is('.out')) {
-                    target.find('canvas').addClass('out');
-                    target.find('.process').addClass('in');
-                }
-            }
-        },
-        done(e, data) {
-            const target = data.newItem || $(e.target);
-            $.post(
-                <?= json_encode((string) $controller->getActionURL('getFileDetails')) ?>,
-                {
-                    <?= json_encode($token::DEFAULT_TOKEN_NAME) ?>: <?= json_encode($token->generate('eig_getFileDetails')) ?>,
-                    fID: data.result[0].fID,
-                },
-                function(file) {
-                    fillTemplate(file,target);
-                },
-                'json'
-            );
-        },
-        fail(r, data) {
-            let message;
-            try {
-                message = JSON.parse(r.responseText).errors.join('<br/>');
-            } catch (e) {
-                message = r.responseText;
-            }
-            window.ConcreteAlert.dialog('Error', message);
-        },
-        stop(e) {
-            is_first_file = true;
-            fillTemplate();
-        }
-    })
-    const $inputfile = $obj.find('input.browse-file');
-    $obj.find('.upload-file').on('click', function(e) {
-        e.preventDefault();
-        $inputfile.click();
-    });
-}
+<?php
+if ($enableFileUpload) {
+    ?>
+    function initUploadActionOnItem($obj) {
+        $obj.find('.knob').knob();
+        $obj.find('.add-file-control').hide();
+    }
 
-function initUploadActionOnItem($obj) {
-    $obj.find('.knob').knob();
-    $obj.find('.add-file-control').hide();
+    function attachUploadEvent($obj) {
+        $obj.fileupload({
+            url: CCM_DISPATCHER_FILENAME + '/ccm/system/file/upload',
+            dataType: 'json',
+            formData: {ccm_token: CCM_SECURITY_TOKEN},
+            add(e, data) {
+                const uploadFile = data.files[0];
+                if (!(/\.(gif|jpg|jpeg|tiff|png)$/i).test(uploadFile.name)) {
+                    window.alert(<?= json_encode(t('You must select an image file only')) ?>);
+                    return;
+                }
+                if (uploadFile.size > 6000000) {
+                    window.alert(<?= json_encode(t('Please upload a smaller image, max size is 6 MB')) ?>);
+                    return;
+                }
+                data.submit();
+            },
+            send(e, data) {
+                if (is_first_file) {
+                    initUploadActionOnItem($(e.target));
+                    is_first_file = false;
+                } else {
+                    data.newItem = fillTemplate();
+                    initUploadActionOnItem(data.newItem);
+                }
+            },
+            progress(e, data) {
+                const progress = parseInt(data.loaded / data.total * 100, 10);
+                const target = data.newItem || $(e.target);
+                if (progress < 95) {
+                    target.find('.knob').val(progress).change();
+                } else {
+                    target.find('.knob').val(100).change();
+                    if(!target.find('canvas').is('.out')) {
+                        target.find('canvas').addClass('out');
+                        target.find('.process').addClass('in');
+                    }
+                }
+            },
+            done(e, data) {
+                const target = data.newItem || $(e.target);
+                $.post(
+                    <?= json_encode((string) $controller->getActionURL('getFileDetails')) ?>,
+                    {
+                        <?= json_encode($token::DEFAULT_TOKEN_NAME) ?>: <?= json_encode($token->generate('eig_getFileDetails')) ?>,
+                        fID: data.result[0].fID,
+                    },
+                    function(file) {
+                        fillTemplate(file,target);
+                    },
+                    'json'
+                );
+            },
+            fail(r, data) {
+                let message;
+                try {
+                    message = JSON.parse(r.responseText).errors.join('<br/>');
+                } catch (e) {
+                    message = r.responseText;
+                }
+                window.ConcreteAlert.dialog('Error', message);
+            },
+            stop(e) {
+                is_first_file = true;
+                fillTemplate();
+            }
+        })
+        const $inputfile = $obj.find('input.browse-file');
+        $obj.find('.upload-file').on('click', function(e) {
+            e.preventDefault();
+            $inputfile.click();
+        });
+    }
+    <?php
 }
+?>
 
 function attachDelete($obj) {
     $obj.find('.remove-item').click(function() {
@@ -338,11 +363,23 @@ function fillTemplate(file, $element) {
     }
     if (!file) {
         attachFileManagerLaunch(newSlide);
-        attachUploadEvent(newSlide);
+        <?php
+        if ($enableFileUpload) {
+            ?>
+            attachUploadEvent(newSlide);
+            <?php
+        }
+        ?>
     } else {
         attachDelete(newSlide);
         initImageEdit(newSlide,file);
-        newSlide.find('.browse-file').remove();
+        <?php
+        if ($enableFileUpload) {
+            ?>
+            newSlide.find('.browse-file').remove();
+            <?php
+        }
+        ?>
         newSlide.find('.image-fID').val(defaults.inputValue);
     }
     newSlide.find('[data-field=entry-link-page-selector]').concretePageSelector({
@@ -356,21 +393,19 @@ function fillTemplate(file, $element) {
 function refreshManager() {
     $('.image-item').not('.filled').appendTo(sliderEntriesContainer);
     sliderEntriesContainer.sortable({handle: '.handle'});
-    const b = $('#easy_image_save');
-    if(!$('.image-item.filled').length) {
-        b.addClass('disabled');
-    } else if (b.is('.disabled')) {
-        b.removeClass('disabled');
-    }
+    $('#easy_image_save').toggleClass('disabled', $('.image-item.filled').length === 0);
 }
 
 function addFileset(fsID) {
+    if (!(fsID = parseInt(fsID)) || fsID < 1) {
+        return;
+    } 
     if ($.inArray(fsID, selectedFilesets) > -1) {
         if (!window.confirm(<?= json_encode(t('This Fileset have been already picked, are you sure to add images again ?')) ?>)) {
             return;
         }
     } else {
-        selectedFilesets.push(parseInt(fsID));
+        selectedFilesets.push(fsID);
     }
     selectedFilesets = selectedFilesets.filter(function(itm, i, a) {
         return i == a.indexOf(itm);
@@ -394,8 +429,10 @@ function addFileset(fsID) {
 }
 
 function removeFileset(fsID) {
-    fsID = parseInt(fsID);
-    if ($.inArray(parseInt(fsID), selectedFilesets) === -1) {
+    if (!(fsID = parseInt(fsID)) || fsID < 1) {
+        return;
+    } 
+    if ($.inArray(fsID, selectedFilesets) === -1) {
         window.alert(<?= json_encode(t('Ouups the fileset has not been found here..')) ?>);
         return;
     }
@@ -426,21 +463,39 @@ function displayLinkChooser(container, type) {
     }
 }
 
-
-$('#fsID').select2({
-    width: 'copy',
-});
-
-$('#fsID').change(function(e) {
-    const r = e.removed;
-    const a = e.added;
-    if (typeof r === 'object') {
-        removeFileset(r.id);
+<?php
+if ($fileSets !== []) {
+    if (version_compare(APP_VERSION, '9') >= 0) {
+        ?>
+        new TomSelect('#fsID', {
+            placeholder: <?= json_encode(t('Add a File Set')) ?>,
+            onItemAdd: function(value, $item) {
+                addFileset(value);
+            }, 
+            onItemRemove: function(value, $item) {
+                removeFileset(value);
+            }, 
+        });
+        <?php
+    } else {
+        ?>
+        $('#fsID')
+            .select2({
+                width: 'copy',
+            })
+            .change(function(e) {
+                if (typeof e.removed === 'object') {
+                    removeFileset(e.removed.id);
+                }
+                if (typeof e.added === 'object') {
+                    addFileset(e.added.id);
+                }
+            })
+        ;
+        <?php
     }
-    if (typeof a === 'object') {
-        addFileset(a.id);
-    }
-});
+}
+?>
 
 $('#options-button').on('click', function(e) {
     $('#advanced-options-content').slideUp();

@@ -3,6 +3,8 @@ namespace Concrete\Package\EasyImageGallery\Block\EasyImageGallery;
 
 defined('C5_EXECUTE') or die("Access Denied.");
 
+use Concrete\Core\Asset\Asset;
+use Concrete\Core\Asset\AssetList;
 use Concrete\Core\Attribute\Category\FileCategory;
 use Concrete\Core\Backup\ContentExporter;
 use Concrete\Core\Block\BlockController;
@@ -657,6 +659,7 @@ class Controller extends BlockController implements FileTrackableInterface
 
     private function setAssetEdit()
     {
+        $assetList = AssetList::getInstance();
         $this->requireAsset('core/file-manager');
         $this->requireAsset('css', 'core/file-manager');
         $this->requireAsset('css', 'jquery/ui');
@@ -667,15 +670,27 @@ class Controller extends BlockController implements FileTrackableInterface
         $this->requireAsset('javascript', 'core/events');
         $this->requireAsset('core/file-manager');
         $this->requireAsset('core/sitemap');
-        $this->requireAsset('select2');
+        if (version_compare(APP_VERSION, '9') < 0) {
+            $this->requireAsset('select2');
+        }
         $this->requireAsset('javascript', 'underscore');
         $this->requireAsset('javascript', 'core/app');
-        $this->requireAsset('javascript', 'bootstrap-editable');
-        $this->requireAsset('css', 'core/app/editable-fields');
+        if (version_compare(APP_VERSION, '9') >= 0) {
+            if (!$assetList->getAsset('javascript', 'bootstrap-editable')) {
+                $assetList->register('javascript', 'bootstrap-editable', 'js/bootstrap-editable.js', ['version' => '1.5.3', 'position' => Asset::ASSET_POSITION_FOOTER, 'minify' => false, 'combine' => true], 'easy_image_gallery');
+            }
+            $this->requireAsset('javascript', 'bootstrap-editable');
+            if (!$assetList->getAsset('css', 'bootstrap-editable')) {
+                $assetList->register('css', 'bootstrap-editable', 'css/bootstrap-editable.css', ['version' => '1.5.3', 'position' => Asset::ASSET_POSITION_HEADER, 'minify' => false, 'combine' => true], 'easy_image_gallery');
+            }
+            $this->requireAsset('css', 'bootstrap-editable');
+        } else {
+            $this->requireAsset('javascript', 'bootstrap-editable');
+            $this->requireAsset('css', 'core/app/editable-fields');
+        }
         $this->requireAsset('javascript','knob');
         $this->requireAsset('css','easy-gallery-edit');
     }
-
 
     /**
      * @param \Concrete\Core\Entity\File\File $file
