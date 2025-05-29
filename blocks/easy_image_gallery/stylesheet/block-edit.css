@@ -246,6 +246,6 @@ div.image-item.fileset .img {
 
 
 /* -- ccm-ui -- */
-.ccm-ui .popover.top {
+.ccm-ui .popover.top, .popover.editable-container.editable-popup {
 z-index: 9999; /* To go up of the tool bar */
 }
