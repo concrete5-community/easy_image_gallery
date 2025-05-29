@@ -19,6 +19,7 @@ use Concrete\Core\Form\Service\Form;
 use Concrete\Core\Http\ResponseFactoryInterface;
 use Concrete\Core\Localization\Localization;
 use Concrete\Core\Page\Page;
+use Concrete\Core\Package\PackageService;
 use Concrete\Core\Permission\Checker;
 use Concrete\Core\Utility\Service\Xml;
 use Concrete\Core\Validation\CSRF\Token;
@@ -299,18 +300,44 @@ class Controller extends BlockController implements FileTrackableInterface
      */
     public function registerViewAssets($outputContent = '')
     {
-        $this->requireAsset('css','easy-gallery-view');
+        $package = $this->getPackage();
+        $assetList = AssetList::getInstance();
         $this->requireAsset('javascript', 'jquery');
+        if (!$assetList->getAsset('css','easy-gallery-view')) {
+            $assetList->register('css', 'easy-gallery-view', 'blocks/easy_image_gallery/stylesheet/block-view.css', ['version' => '1', 'position' => Asset::ASSET_POSITION_FOOTER, 'minify' => true, 'combine' => true], $package);
+        }
+        $this->requireAsset('css','easy-gallery-view');
+        if (!$assetList->getAsset('javascript', 'imagesloaded')) {
+            $assetList->register('javascript', 'imagesloaded', 'blocks/easy_image_gallery/javascript/build/imagesloaded.pkgd.min.js', ['version' => '3.1.4', 'position' => Asset::ASSET_POSITION_FOOTER, 'minify' => true, 'combine' => true], $package);
+        }
         $this->requireAsset('javascript', 'imagesloaded');
+        if (!$assetList->getAsset('javascript', 'masonry')) {
+            $assetList->register('javascript', 'masonry', 'blocks/easy_image_gallery/javascript/build/masonry.pkgd.min.js', ['version' => '3.1.4', 'position' => Asset::ASSET_POSITION_FOOTER, 'minify' => true, 'combine' => true], $package);
+        }
         $this->requireAsset('javascript', 'masonry');
+        if (!$assetList->getAsset('javascript', 'isotope')) {
+            $assetList->register('javascript', 'isotope', 'blocks/easy_image_gallery/javascript/build/isotope.pkgd.min.js', ['version' => '3.1.4', 'position' => Asset::ASSET_POSITION_FOOTER, 'minify' => true, 'combine' => true], $package);
+        }
         $this->requireAsset('javascript', 'isotope');
+        if (!$assetList->getAsset('javascript', 'lazyload')) {
+            $assetList->register('javascript', 'lazyload', 'blocks/easy_image_gallery/javascript/build/jquery.lazyload.min.js', ['version' => '1.9.1', 'position' => Asset::ASSET_POSITION_FOOTER, 'minify' => true, 'combine' => true], $package);
+        }
         $this->requireAsset('javascript', 'lazyload');
         switch ($this->getOptions()->lightbox) {
             case 'lightbox':
+                if (!$assetList->getAsset('javascript', 'fancybox')) {
+                    $assetList->register('javascript', 'fancybox', 'blocks/easy_image_gallery/javascript/build/jquery.fancybox.pack.js', ['version' => '2.1.5', 'position' => Asset::ASSET_POSITION_FOOTER, 'minify' => true, 'combine' => true], $package);
+                }
                 $this->requireAsset('javascript', 'fancybox');
+                if (!$assetList->getAsset('css', 'fancybox')) {
+                    $assetList->register('css', 'fancybox', 'blocks/easy_image_gallery/stylesheet/jquery.fancybox.css', ['version' => '2.1.5', 'position' => Asset::ASSET_POSITION_FOOTER, 'minify' => true, 'combine' => true], $package);
+                }
                 $this->requireAsset('css', 'fancybox');
                 break;
             case 'intense':
+                if (!$assetList->getAsset('javascript', 'intense')) {
+                    $assetList->register('javascript', 'intense', 'blocks/easy_image_gallery/javascript/build/intense.js', ['version' => '1', 'position' => Asset::ASSET_POSITION_FOOTER, 'minify' => true, 'combine' => true], $package);
+                }
                 $this->requireAsset('javascript', 'intense');
                 break;
         }
@@ -525,7 +552,6 @@ class Controller extends BlockController implements FileTrackableInterface
                                     }
                                 }
                             }
-                            
                         }
                         break;
                 }
@@ -659,6 +685,7 @@ class Controller extends BlockController implements FileTrackableInterface
 
     private function setAssetEdit()
     {
+        $package = $this->getPackage();
         $assetList = AssetList::getInstance();
         $this->requireAsset('core/file-manager');
         $this->requireAsset('css', 'core/file-manager');
@@ -677,18 +704,24 @@ class Controller extends BlockController implements FileTrackableInterface
         $this->requireAsset('javascript', 'core/app');
         if (version_compare(APP_VERSION, '9') >= 0) {
             if (!$assetList->getAsset('javascript', 'bootstrap-editable')) {
-                $assetList->register('javascript', 'bootstrap-editable', 'js/bootstrap-editable.js', ['version' => '1.5.3', 'position' => Asset::ASSET_POSITION_FOOTER, 'minify' => false, 'combine' => true], 'easy_image_gallery');
+                $assetList->register('javascript', 'bootstrap-editable', 'js/bootstrap-editable.js', ['version' => '1.5.3', 'position' => Asset::ASSET_POSITION_FOOTER, 'minify' => false, 'combine' => true], $package);
             }
             $this->requireAsset('javascript', 'bootstrap-editable');
             if (!$assetList->getAsset('css', 'bootstrap-editable')) {
-                $assetList->register('css', 'bootstrap-editable', 'css/bootstrap-editable.css', ['version' => '1.5.3', 'position' => Asset::ASSET_POSITION_HEADER, 'minify' => false, 'combine' => true], 'easy_image_gallery');
+                $assetList->register('css', 'bootstrap-editable', 'css/bootstrap-editable.css', ['version' => '1.5.3', 'position' => Asset::ASSET_POSITION_HEADER, 'minify' => false, 'combine' => true], $package);
             }
             $this->requireAsset('css', 'bootstrap-editable');
         } else {
             $this->requireAsset('javascript', 'bootstrap-editable');
             $this->requireAsset('css', 'core/app/editable-fields');
         }
+        if (!$assetList->getAsset('javascript', 'knob')) {
+            $assetList->register('javascript', 'knob', 'blocks/easy_image_gallery/javascript/build/jquery.knob.js', ['version' => '1.2.11', 'position' => Asset::ASSET_POSITION_FOOTER, 'minify' => true, 'combine' => true], $package);
+        }
         $this->requireAsset('javascript','knob');
+        if (!$assetList->getAsset('css', 'easy-gallery-edit')) {
+            $assetList->register('css', 'easy-gallery-edit', 'blocks/easy_image_gallery/stylesheet/block-edit.css', ['version' => '1', 'position' => Asset::ASSET_POSITION_FOOTER, 'minify' => true, 'combine' => true], $package);
+        }
         $this->requireAsset('css','easy-gallery-edit');
     }
 
@@ -877,4 +910,17 @@ class Controller extends BlockController implements FileTrackableInterface
         return $o;
     }
 
+    /**
+     * @return \Concrete\Core\Entity\Package
+     */
+    private function getPackage()
+    {
+        static $result;
+
+        if ($result === null) {
+            $result = $this->app->make(PackageService::class)->getByHandle('easy_image_gallery');
+        }
+
+        return $result;
+    }
 }

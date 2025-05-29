@@ -399,7 +399,7 @@ function refreshManager() {
 function addFileset(fsID) {
     if (!(fsID = parseInt(fsID)) || fsID < 1) {
         return;
-    } 
+    }
     if ($.inArray(fsID, selectedFilesets) > -1) {
         if (!window.confirm(<?= json_encode(t('This Fileset have been already picked, are you sure to add images again ?')) ?>)) {
             return;
@@ -431,7 +431,7 @@ function addFileset(fsID) {
 function removeFileset(fsID) {
     if (!(fsID = parseInt(fsID)) || fsID < 1) {
         return;
-    } 
+    }
     if ($.inArray(fsID, selectedFilesets) === -1) {
         window.alert(<?= json_encode(t('Ouups the fileset has not been found here..')) ?>);
         return;
@@ -471,10 +471,10 @@ if ($fileSets !== []) {
             placeholder: <?= json_encode(t('Add a File Set')) ?>,
             onItemAdd: function(value, $item) {
                 addFileset(value);
-            }, 
+            },
             onItemRemove: function(value, $item) {
                 removeFileset(value);
-            }, 
+            },
         });
         <?php
     } else {
