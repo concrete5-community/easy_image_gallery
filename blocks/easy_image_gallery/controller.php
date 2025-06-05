@@ -19,9 +19,10 @@ use Concrete\Core\File\Tracker\FileTrackableInterface;
 use Concrete\Core\Form\Service\Form;
 use Concrete\Core\Http\ResponseFactoryInterface;
 use Concrete\Core\Localization\Localization;
-use Concrete\Core\Page\Page;
 use Concrete\Core\Package\PackageService;
+use Concrete\Core\Page\Page;
 use Concrete\Core\Permission\Checker;
+use Concrete\Core\Statistics\UsageTracker\AggregateTracker;
 use Concrete\Core\Utility\Service\Xml;
 use Concrete\Core\Validation\CSRF\Token;
 use Concrete\Package\EasyImageGallery\Options;
@@ -113,6 +114,11 @@ class Controller extends BlockController implements FileTrackableInterface
      * @see \Concrete\Core\Block\BlockController::$btDefaultSet
      */
     protected $btDefaultSet = 'multimedia';
+
+    /**
+     * @var \Concrete\Core\Statistics\UsageTracker\AggregateTracker|null
+     */
+    protected $tracker;
 
     /**
      * @var string|null
@@ -285,10 +291,27 @@ class Controller extends BlockController implements FileTrackableInterface
         } else {
             $fIDs = '';
         }
+        $this->fIDs = $fIDs;
         parent::save([
             'fIDs' => $fIDs,
             'options' => json_encode((array) $options),
         ]);
+        if (version_compare(APP_VERSION, '9.0.2') < 0) {
+            $this->getTracker()->track($this);
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @see \Concrete\Core\Block\BlockController::delete()
+     */
+    public function delete()
+    {
+        if (version_compare(APP_VERSION, '9.0.2') < 0) {
+            $this->getTracker()->forget($this);
+        }
+        parent::delete();
     }
 
     /**
@@ -561,6 +584,18 @@ class Controller extends BlockController implements FileTrackableInterface
         ];
     }
 
+    /**
+     * @return \Concrete\Core\Statistics\UsageTracker\AggregateTracker
+     */
+    protected function getTracker()
+    {
+        if ($this->tracker === null) {
+            $this->tracker = $this->app->make(AggregateTracker::class);
+        }
+
+        return $this->tracker;
+    }
+
     private function addOrEdit()
     {
         $this->setAssetEdit();
@@ -633,8 +668,6 @@ class Controller extends BlockController implements FileTrackableInterface
     }
 
     /**
-     * @param int[]|string[] $fIDs
-     *
      * @return int[]
      */
     private function getAllFileIDs()
